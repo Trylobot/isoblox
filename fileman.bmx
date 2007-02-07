@@ -14,7 +14,7 @@ Import "iso_block.bmx"
 Import "iso_grid.bmx"
 
 '_________________________________________________________________________
-Function fileman_load_image_libraries()
+Function fileman_load_art()
 	
 	spritelib_blocks_map = LoadPixmapPNG( "incbin::art/spritelib_blocks.png" )
 	spritelib_faces_map = LoadPixmapPNG( "incbin::art/spritelib_faces.png" )
@@ -44,6 +44,13 @@ Function fileman_load_image_libraries()
 		
 	Next
 		
+EndFunction
+
+'_________________________________________________________________________
+Function fileman_load_sound()
+	
+	'stub
+	
 EndFunction
 
 '_________________________________________________________________________

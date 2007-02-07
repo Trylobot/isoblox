@@ -27,17 +27,19 @@ SetBlend( ALPHABLEND )
 set_window( WS_MINIMIZEBOX )' | WS_SIZEBOX )
 ?
 
+Global status:message_nanny = New message_nanny
 Local isoblox:controller = New controller
 isoblox.load_assets()
-isoblox.status.append( "welcome to $Bisoblox$D!" )
-isoblox.status.append( "programming and art by $BTyler W.R. Cole" )
-isoblox.status.append( "first time? $bpress F1 for help" )
 
 'main program loop
 Repeat	
+	
+'?win32
+'If close_message() Then End
+'?
 	
 	Cls            'clear screen
 	isoblox.chug() 'process one frame of input and drawing
 	Flip(1)        'flip backbuffer to screen, waiting for vertical sync
 	
-Until KeyDown( Key_Escape )
+Forever

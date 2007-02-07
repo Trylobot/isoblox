@@ -12,11 +12,11 @@ Strict
 Const PROJECT_VERSION$ = "alpha 3"
 Const CONFIG_FILENAME$ = "isoblox.cfg"
 
-Global SCREEN_WIDTH  = 800
-Global SCREEN_HEIGHT = 600
-Global GRID_X = 36
-Global GRID_Y = 36
-Global GRID_Z = 36
+Global SCREEN_WIDTH  = 350
+Global SCREEN_HEIGHT = 350
+Global GRID_X = 18
+Global GRID_Y = 18
+Global GRID_Z = 18
 Global ORIGIN_X = SCREEN_WIDTH / 2
 Global ORIGIN_Y = SCREEN_HEIGHT / 2
 

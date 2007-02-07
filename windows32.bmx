@@ -26,4 +26,9 @@ Function set_window(GWLStyleFlags=0)
 	SetWindowLongA(hWnd, GWL_STYLE, GetWindowLongA(hWnd, GWL_STYLE) | GWLStyleFlags)
 	SendMessageA(hWnd, WM_SETICON, ICON_BIG, LoadIconA(GetModuleHandleA(Null), Byte Ptr(101)))
 End Function
+Function close_message()
+	Local msg:Byte Ptr
+	GetMessageA( msg,hWnd,WM_CLOSE,WM_CLOSE )
+	If msg[0] = WM_CLOSE Then Return True Else Return False
+EndFunction
 ?

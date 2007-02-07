@@ -108,6 +108,26 @@ Type iso_grid
 		
 	EndMethod
 	
+	Method expand_for_subvolume( sub_offset:iso_coord, sub_size:iso_coord )
+
+		Local new_size:iso_coord = sub_size.copy()
+		
+		If sub_offset.x + sub_size.x > size.x Then ..
+			new_size.x :+ sub_offset.x + sub_size.x - size.x
+		If sub_offset.y + sub_size.y > size.y Then ..
+			new_size.y :+ sub_offset.y + sub_size.y - size.y
+		If sub_offset.z + sub_size.z > size.z Then ..
+			new_size.z :+ sub_offset.z + sub_size.z - size.z
+		
+		If Not new_size.equal( sub_size )
+			resize( new_size )
+			Return True
+		Else
+			Return False
+		EndIf
+		
+	EndMethod
+
 	Method empty()
 		
 		Return blocklist.isEmpty()
