@@ -160,7 +160,7 @@ Type controller
 			"$yrotate $Dblock(s)       $BR$D,$BF$D,$BV $D($b+ $Bctrl$D)~n"+..
 			"change $Bselection size$D $Bshift $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
 			"change $Bgrid size$D      $Bctrl $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
-			"select $Ball$D            disabled~n"+..
+			"select $Ball$D            F8 (disabled)~n"+..
 			"$gcopy $Dselection        $BF5~n"+..
 			"change basic $rR$gG$bB$BA$D     $rT$D,$gY$D,$bU,$BI $D($b+ $Bctrl$D)~n"+..
 			"$rdelete $Dselected       $Btilde~n"+..
@@ -231,7 +231,7 @@ Type controller
 		Rem
 		'_____________________
 		'SELECTING ENTIRE GRID
-		ElseIf KeyHit( Key_Y )
+		ElseIf KeyHit( Key_F8 )
 			command_select_all( status, grid, cursor )			
 		EndRem
 			
@@ -305,7 +305,7 @@ Type controller
 		'CHANGING CURSOR BASIC BLOCK R,G,B,A VALUES
 			If KeyDown( Key_T ) Or KeyDown( Key_Y ) Or KeyDown( Key_U ) Or KeyDown( Key_I ) And cursor.mode = CURSOR_BASIC
 				
-				If Not (KeyDown( Key_LControl ) Or KeyDown( Key_RControl ))
+				If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
 					
 					If KeyDown( Key_T ) And cursor.basic_block.red   < 255   Then cursor.basic_block.red   :+ 5
 					If KeyDown( Key_Y ) And cursor.basic_block.green < 255   Then cursor.basic_block.green :+ 5

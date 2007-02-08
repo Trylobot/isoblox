@@ -61,12 +61,12 @@ Const FACE_XY_PLUS  = 3
 Const FACE_YZ_PLUS  = 4
 Const FACE_XZ_PLUS  = 5
 
-Const ROTATE_X_PLUS  = 0
-Const ROTATE_X_MINUS = 1
-Const ROTATE_Y_PLUS  = 2
-Const ROTATE_Y_MINUS = 3
-Const ROTATE_Z_PLUS  = 4
-Const ROTATE_Z_MINUS = 5
+Const ROTATE_X_MINUS = 0
+Const ROTATE_Y_MINUS = 1
+Const ROTATE_Z_MINUS = 2
+Const ROTATE_X_PLUS  = 3
+Const ROTATE_Y_PLUS  = 4
+Const ROTATE_Z_PLUS  = 5
 Global rotation_map[ 6, COUNT_BLOCKS ]
 
 Const CHAR_HEIGHT = 9
