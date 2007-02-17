@@ -14,9 +14,10 @@ Const CONFIG_FILENAME$ = "isoblox.cfg"
 
 Global SCREEN_WIDTH  = 350
 Global SCREEN_HEIGHT = 350
-Global GRID_X = 18
-Global GRID_Y = 18
-Global GRID_Z = 18
+Global GRID_X = 16
+Global GRID_Y = 16
+Global GRID_Z = 16
+Global GRID_MAJOR_INTERVAL = 8
 Global ORIGIN_X = SCREEN_WIDTH / 2
 Global ORIGIN_Y = SCREEN_HEIGHT / 2
 
@@ -30,25 +31,23 @@ Global cursor_blink_timer:TTimer = CreateTimer( 300 )
 Global ALPHA_BLINK_1#
 Global ALPHA_BLINK_2#
 
-Const COUNT_LIBS   = 8
-Const COUNT_BLOCKS = 67
+Const COUNT_LIBS   = 6
+Const COUNT_BLOCKS = 125
 Global spritelib_blocks:TImage[ COUNT_LIBS, COUNT_BLOCKS ]
 Global spritelib_blocks_map:TPixmap
-Const COUNT_GROUPS = 5
-Global group_starting_index[] = [ 0, 1, 13, 36, 59 ]
+Const COUNT_GROUPS = 6
+Global group_starting_index[] = [ 0, 1, 13, 0, 0, 0 ]
 
 Const COUNT_GHOST_FRAMES = 1
 Global spritelib_faces:TImage[ 6, COUNT_GHOST_FRAMES ]
 Global spritelib_faces_map:TPixmap
 
 Const LIB_BLOCKS       = 0
-Const LIB_SHADOWS_XY   = 1
-Const LIB_SHADOWS_YZ   = 2
-Const LIB_SHADOWS_XZ   = 3
-Const LIB_OUTLINES_1PX = 4
-Const LIB_OUTLINES_2PX = 5
-Const LIB_OUTLINES_3PX = 6
-Const LIB_WIREFRAMES   = 7
+Const LIB_WIREFRAMES   = 1
+Const LIB_OUTLINES     = 2
+Const LIB_SHADOWS_XY   = 3
+Const LIB_SHADOWS_YZ   = 4
+Const LIB_SHADOWS_XZ   = 5
 
 Const CURSOR_BASIC  = 0
 Const CURSOR_BRUSH  = 1

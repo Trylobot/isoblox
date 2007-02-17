@@ -176,7 +176,7 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 EndFunction
 
 '_________________________________________________________________________
-Function draw_outlines( grid:iso_grid, cursor:iso_cursor, OUTLINE_WIDTH )
+Function draw_outlines( grid:iso_grid, cursor:iso_cursor )
 	
 	Local scr:scr_coord
 	Local iter:iso_block
@@ -188,16 +188,7 @@ Function draw_outlines( grid:iso_grid, cursor:iso_cursor, OUTLINE_WIDTH )
 		
 		scr = iso_to_scr( iter.offset )
 		
-		Select OUTLINE_WIDTH
-			
-			Case 1					
-				DrawImage( spritelib_blocks[ LIB_OUTLINES_1PX, iter.isotype ], scr.x, scr.y )
-			Case 2
-				DrawImage( spritelib_blocks[ LIB_OUTLINES_2PX, iter.isotype ], scr.x, scr.y )
-			Case 3
-				DrawImage( spritelib_blocks[ LIB_OUTLINES_3PX, iter.isotype ], scr.x, scr.y )
-			
-		EndSelect
+		DrawImage( spritelib_blocks[ LIB_OUTLINES, iter.isotype ], scr.x, scr.y )
 		
 	Next
 	

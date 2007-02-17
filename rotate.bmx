@@ -74,6 +74,8 @@ EndFunction
 
 Function rotate_calc_plus_rotations()
 	
+	Return	
+	
 	'this function's purpose:
 	'cuts the number of literal definitions in half by using the principle that 
 	'rotating 90 degrees on an axis is the same as rotating 270 degrees, and therefore
@@ -93,12 +95,12 @@ EndFunction
 
 Function rotate_init()
 	
-'________________________________________
+	rotation_map = New Int[ 6, COUNT_BLOCKS ]
+	
 	rotation_map[ ROTATE_X_MINUS,  0 ] =  0
 	rotation_map[ ROTATE_Y_MINUS,  0 ] =  0
 	rotation_map[ ROTATE_Z_MINUS,  0 ] =  0
 	
-'________________________________________
 	rotation_map[ ROTATE_X_MINUS,  1 ] =  0
 	rotation_map[ ROTATE_Y_MINUS,  1 ] =  0
 	rotation_map[ ROTATE_Z_MINUS,  1 ] =  0
@@ -147,7 +149,6 @@ Function rotate_init()
 	rotation_map[ ROTATE_Y_MINUS, 12 ] =  0
 	rotation_map[ ROTATE_Z_MINUS, 12 ] =  0
 	
-'________________________________________
 	rotation_map[ ROTATE_X_MINUS, 13 ] =  0
 	rotation_map[ ROTATE_Y_MINUS, 13 ] =  0
 	rotation_map[ ROTATE_Z_MINUS, 13 ] =  0
@@ -291,9 +292,6 @@ Function rotate_init()
 	rotation_map[ ROTATE_X_MINUS, 48 ] =  0
 	rotation_map[ ROTATE_Y_MINUS, 48 ] =  0
 	rotation_map[ ROTATE_Z_MINUS, 48 ] =  0
-	
-'________________________________________
-	
 	
 	rotate_calc_plus_rotations()
 	

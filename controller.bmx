@@ -108,7 +108,7 @@ Type controller
 		EndIf
 		
 		If OUTLINE_WIDTH > 0
-			draw_outlines( grid, cursor, OUTLINE_WIDTH )
+			draw_outlines( grid, cursor )
 		EndIf
 		
 		If SHOW_BLOCKS
