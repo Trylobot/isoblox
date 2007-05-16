@@ -12,6 +12,7 @@ Strict
 Framework BRL.GLMax2D
 Import BRL.System
 Import BRL.Timer
+Import BRL.RamStream
 
 ?win32
 Import "windows32.bmx"
@@ -19,9 +20,9 @@ Import "windows32.bmx"
 Import "globals.bmx"
 Import "controller.bmx"
 
-'Incbin "art/spritelib_blocks.png"
-'Incbin "art/spritelib_faces.png"
-'Incbin "art/spritelib_font.png"
+Incbin "art/spritelib_blocks.png"
+Incbin "art/spritelib_faces.png"
+Incbin "art/spritelib_font.png"
 
 'initialization
 If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()

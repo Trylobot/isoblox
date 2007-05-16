@@ -20,12 +20,12 @@ Import "iso_grid.bmx"
 '_________________________________________________________________________
 Function fileman_load_art()
 	
-'	spritelib_blocks_map = LoadPixmapPNG( "incbin::art/spritelib_blocks.png" )
-'	spritelib_faces_map = LoadPixmapPNG( "incbin::art/spritelib_faces.png" )
-'	spritelib_font_map = LoadPixmapPNG( "incbin::art/spritelib_font.png" )
-	spritelib_blocks_map = LoadPixmapPNG( "art/spritelib_blocks.png" )
-	spritelib_faces_map = LoadPixmapPNG( "art/spritelib_faces.png" )
-	spritelib_font_map = LoadPixmapPNG( "art/spritelib_font.png" )
+	spritelib_blocks_map = LoadPixmapPNG( "incbin::art/spritelib_blocks.png" )
+	spritelib_faces_map = LoadPixmapPNG( "incbin::art/spritelib_faces.png" )
+	spritelib_font_map = LoadPixmapPNG( "incbin::art/spritelib_font.png" )
+'	spritelib_blocks_map = LoadPixmapPNG( "art/spritelib_blocks.png" )
+'	spritelib_faces_map = LoadPixmapPNG( "art/spritelib_faces.png" )
+'	spritelib_font_map = LoadPixmapPNG( "art/spritelib_font.png" )
 	AutoImageFlags( FILTEREDIMAGE | MIPMAPPEDIMAGE )
 	
 	For Local library = 0 To (COUNT_LIBS - 1)
