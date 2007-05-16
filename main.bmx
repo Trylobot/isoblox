@@ -8,14 +8,20 @@ __________________________________________________________________________
 EndRem
 
 Strict
+
+Framework BRL.GLMax2D
+Import BRL.System
+Import BRL.Timer
+
 ?win32
 Import "windows32.bmx"
 ?
 Import "globals.bmx"
 Import "controller.bmx"
-Incbin "art/spritelib_blocks.png"
-Incbin "art/spritelib_faces.png"
-Incbin "art/spritelib_font.png"
+
+'Incbin "art/spritelib_blocks.png"
+'Incbin "art/spritelib_faces.png"
+'Incbin "art/spritelib_font.png"
 
 'initialization
 If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()
@@ -34,12 +40,8 @@ isoblox.load_assets()
 'main program loop
 Repeat	
 	
-'?win32
-'If close_message() Then End
-'?
-	
 	Cls            'clear screen
 	isoblox.chug() 'process one frame of input and drawing
-	Flip(1)        'flip backbuffer to screen, waiting for vertical sync
+	Flip(1)        'flip backbuffer to screen after vertical sync
 	
 Forever

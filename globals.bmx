@@ -9,6 +9,8 @@ EndRem
 
 Strict
 
+Import BRL.Timer
+
 Const PROJECT_VERSION$ = "alpha 3"
 Const CONFIG_FILENAME$ = "isoblox.cfg"
 
