@@ -34,11 +34,11 @@ Global ALPHA_BLINK_1#
 Global ALPHA_BLINK_2#
 
 Const COUNT_LIBS   = 6
-Const COUNT_BLOCKS = 125
+Const COUNT_BLOCKS = 77
 Global spritelib_blocks:TImage[ COUNT_LIBS, COUNT_BLOCKS ]
 Global spritelib_blocks_map:TPixmap
 Const COUNT_GROUPS = 6
-Global group_starting_index[] = [ 0, 1, 13, 0, 0, 0 ]
+Global group_starting_index[] = [ 0, 1, 13, 37, 61, 69 ]
 
 Const COUNT_GHOST_FRAMES = 1
 Global spritelib_faces:TImage[ 6, COUNT_GHOST_FRAMES ]

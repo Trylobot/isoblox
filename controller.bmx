@@ -34,7 +34,7 @@ Type controller
 	Field SHOW_GRIDLINES       'drawing layer flag
 	Field SHOW_BLOCKS          'drawing layer flag
 	Field SHOW_CURSOR          'drawing layer flag
-	Field OUTLINE_WIDTH        'drawing layer flag
+	Field SHOW_OUTLINES        'drawing layer flag
 	Field SHOW_STATUS_MESSAGES 'drawing layer flag
 	Field SHOW_HELP            'drawing layer flag
 
@@ -64,7 +64,7 @@ Type controller
 		SHOW_GRIDLINES       = True
 		SHOW_BLOCKS          = True
 		SHOW_CURSOR          = True
-		OUTLINE_WIDTH        = 1
+		SHOW_OUTLINES        = 1
 		SHOW_STATUS_MESSAGES = True
 		SHOW_HELP            = False
 		
@@ -107,7 +107,7 @@ Type controller
 			draw_gridlines( grid )
 		EndIf
 		
-		If OUTLINE_WIDTH > 0
+		If SHOW_OUTLINES
 			draw_outlines( grid, cursor )
 		EndIf
 		
@@ -472,11 +472,11 @@ Type controller
 			EndIf
 		EndIf
 		If KeyHit( Key_5 )
-			If OUTLINE_WIDTH < 3
-				OUTLINE_WIDTH :+ 1
-				status.append( "$Boutline $Dlayer set to $g"+OUTLINE_WIDTH+" $Dpixels" )
+			If Not SHOW_OUTLINES
+				SHOW_OUTLINES = True
+				status.append( "$Boutline $Dlayer $genabled" )
 			Else
-				OUTLINE_WIDTH = 0
+				SHOW_OUTLINES = False
 				status.append( "$Boutline $Dlayer $ydisabled" )
 			EndIf
 		EndIf
@@ -494,7 +494,7 @@ Type controller
 			SHOW_GRIDLINES = True
 			SHOW_BLOCKS = True
 			SHOW_CURSOR = True
-			OUTLINE_WIDTH = 1
+			SHOW_OUTLINES = 1
 			SHOW_STATUS_MESSAGES = True
 			status.append( "$Ball layers $Dnormal" )
 		EndIf
