@@ -15,14 +15,15 @@ isometric rotation layout
   - Y   X +
   +       -
 	
-geometry groupings by first occurence of geometry in isotype reference
+geometry groupings
+ (excerpt from documentation file "isotype_reference.png")
 	
   0
   1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12
- 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35
- 36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58
- 59,60,61,62,63,64,65,66
-
+ 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
+ 37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60
+ 61,62,63,64,65,66,67,68
+ 69,70,71,72,73,74,75,76
 _______________________________
 EndRem
 
@@ -69,6 +70,12 @@ EndFunction
 Function rotate%( operation, isotype )
 	
 	Return rotation_map[ operation, isotype ]
+	
+EndFunction
+
+Function rotate_copy_duplicate_sets()
+	
+	
 	
 EndFunction
 
@@ -245,53 +252,39 @@ Function rotate_init()
 	rotation_map[ ROTATE_Y_MINUS, 36 ] =  0
 	rotation_map[ ROTATE_Z_MINUS, 36 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 37 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 37 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 37 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 61 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 61 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 61 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 38 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 38 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 38 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 62 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 62 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 62 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 39 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 39 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 39 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 63 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 63 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 63 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 40 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 40 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 40 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 64 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 64 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 64 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 41 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 41 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 41 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 65 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 65 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 65 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 42 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 42 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 42 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 66 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 66 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 66 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 43 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 43 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 43 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 67 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 67 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 67 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 44 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 44 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 44 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 68 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 68 ] =  0
+	rotation_map[ ROTATE_Z_MINUS, 68 ] =  0
 	
-	rotation_map[ ROTATE_X_MINUS, 45 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 45 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 45 ] =  0
-	
-	rotation_map[ ROTATE_X_MINUS, 46 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 46 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 46 ] =  0
-	
-	rotation_map[ ROTATE_X_MINUS, 47 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 47 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 47 ] =  0
-	
-	rotation_map[ ROTATE_X_MINUS, 48 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 48 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 48 ] =  0
+	rotate_copy_duplicate_sets()
 	
 	rotate_calc_plus_rotations()
 	
