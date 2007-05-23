@@ -212,7 +212,7 @@ Function draw_blocks( grid:iso_grid )
 	
 EndFunction
 
-'-------------------------------------------------------------------------
+'_________________________________________________________________________
 Function draw_cursor( cursor:iso_cursor )
 	
 	Local scr:scr_coord

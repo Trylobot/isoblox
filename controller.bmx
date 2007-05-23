@@ -75,6 +75,8 @@ Type controller
 		
 		keyboard_input()
 		draw()
+
+		DRAW_DEBUG_INFORMATION()
 		
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
 			last_tick = seconds.Ticks()
@@ -87,6 +89,17 @@ Type controller
 			status.append( "screenshot $gsaved $Dto [$B" + filename + "$D]" )
 		EndIf
 				
+	EndMethod
+	
+
+'_________________________________________________________________________
+	Method DRAW_DEBUG_INFORMATION()
+		
+		SetOrigin( 0, 0 )
+		Local scr:scr_coord = scr_coord.create( 1, 1 )
+		SetAlpha( 1.000 )
+		draw_msg( cursor.basic_block.str(), scr )
+		
 	EndMethod
 	
 '_________________________________________________________________________

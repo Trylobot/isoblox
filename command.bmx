@@ -140,12 +140,3 @@ Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor 
 	EndSelect
 
 EndFunction
-
-
-
-
-
-
-
-
-

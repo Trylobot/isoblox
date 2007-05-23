@@ -11,7 +11,7 @@ Strict
 
 Import BRL.Timer
 
-Const PROJECT_VERSION$ = "alpha 3"
+Const PROJECT_VERSION$ = "alpha 4"
 Const CONFIG_FILENAME$ = "isoblox.cfg"
 
 Global SCREEN_WIDTH  = 350

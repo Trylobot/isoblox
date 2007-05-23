@@ -31,7 +31,7 @@ Graphics( SCREEN_WIDTH, SCREEN_HEIGHT )
 SetClsColor( 255, 255, 255 )
 SetBlend( ALPHABLEND )
 ?win32
-set_window( WS_MINIMIZEBOX )' | WS_SIZEBOX )
+set_window( WS_MINIMIZEBOX )
 ?
 
 Global status:message_nanny = New message_nanny
