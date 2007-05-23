@@ -170,12 +170,12 @@ Type controller
 			"$bmove $Dcursor           $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
 			"$pinsert $Dblock(s)       $Bspacebar~n"+..
 			"$ccycle $Dbasic blocks    $Btab~n"+..
-			"$yrotate $Dblock(s)       $BR$D,$BF$D,$BV $D($b+ $Bctrl$D)~n"+..
+			"$yrotate $Dblock(s)       $BF$D,$BG$D,$BH $D($b+ $Bctrl$D)~n"+..
 			"change $Bselection size$D $Bshift $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
 			"change $Bgrid size$D      $Bctrl $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
 			"select $Ball$D            F8 (disabled)~n"+..
 			"$gcopy $Dselection        $BF5~n"+..
-			"change basic $rR$gG$bB$BA$D     $rT$D,$gY$D,$bU,$BI $D($b+ $Bctrl$D)~n"+..
+			"change basic $rR$gG$bB$BA$D     $rR$D,$gT$D,$bY,$BU $D($b+ $Bctrl$D)~n"+..
 			"$rdelete $Dselected       $Btilde~n"+..
 			"$bsave grid $Dto file     $BF2~n"+..
 			"$gload brush $Dfrom file  $BF3~n"+..
@@ -271,24 +271,32 @@ Type controller
 			EndIf
 				
 		'TODO
+		'This be "full-auto" for basic cursor but only "semi-auto" for the larger cursor modes.
 		'finish the algorithm for rotation about an anchor so it can be used here!
-
 		'________________________________________
 		'ROTATING BASIC BLOCK OR ENTIRE SELECTION
 			Local operation = -1
 			
-			If KeyDown( Key_R )
-				operation = ROTATE_Z_PLUS
-			ElseIf KeyDown( Key_T )
-				operation = ROTATE_Z_MINUS
-			ElseIf KeyDown( Key_F )
-				operation = ROTATE_Y_PLUS
-			ElseIf KeyDown( Key_G )
-				operation = ROTATE_Y_MINUS
-			ElseIf KeyDown( Key_V )
-				operation = ROTATE_X_PLUS
-			ElseIf KeyDown( Key_B )
-				operation = ROTATE_X_MINUS
+			If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
+			
+				If KeyDown( Key_F )
+					operation = ROTATE_X_MINUS
+				ElseIf KeyDown( Key_G )
+					operation = ROTATE_Y_MINUS
+				ElseIf KeyDown( Key_H )
+					operation = ROTATE_Z_MINUS
+				EndIf
+					
+			Else 'not keydown( ctrl )
+			
+				If KeyDown( Key_F )
+					operation = ROTATE_X_PLUS
+				ElseIf KeyDown( Key_G )
+					operation = ROTATE_Y_PLUS
+				ElseIf KeyDown( Key_H )
+					operation = ROTATE_Z_PLUS
+				EndIf
+					
 			EndIf
 			
 			If operation <> -1
@@ -312,25 +320,24 @@ Type controller
 			EndIf	
 			
 		'TODO
-		'find a good system for modifying the RGBA values for the basic block.
-		
+		'redesign the system for modifying the RGBA values for the basic block.
 		'__________________________________________
 		'CHANGING CURSOR BASIC BLOCK R,G,B,A VALUES
-			If KeyDown( Key_T ) Or KeyDown( Key_Y ) Or KeyDown( Key_U ) Or KeyDown( Key_I ) And cursor.mode = CURSOR_BASIC
+			If KeyDown( Key_R ) Or KeyDown( Key_T ) Or KeyDown( Key_Y ) Or KeyDown( Key_U ) And cursor.mode = CURSOR_BASIC
 				
 				If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
 					
-					If KeyDown( Key_T ) And cursor.basic_block.red   < 255   Then cursor.basic_block.red   :+ 5
-					If KeyDown( Key_Y ) And cursor.basic_block.green < 255   Then cursor.basic_block.green :+ 5
-					If KeyDown( Key_U ) And cursor.basic_block.blue  < 255   Then cursor.basic_block.blue  :+ 5
-					If KeyDown( Key_I ) And cursor.basic_block.alpha < 1.000 Then cursor.basic_block.alpha :+ 0.050
+					If KeyDown( Key_R ) And cursor.basic_block.red   < 255   Then cursor.basic_block.red   :+ 5
+					If KeyDown( Key_T ) And cursor.basic_block.green < 255   Then cursor.basic_block.green :+ 5
+					If KeyDown( Key_Y ) And cursor.basic_block.blue  < 255   Then cursor.basic_block.blue  :+ 5
+					If KeyDown( Key_U ) And cursor.basic_block.alpha < 1.000 Then cursor.basic_block.alpha :+ 0.050
 					
 				Else 'KeyDown( L/RControl )
 					
-					If KeyDown( Key_T ) And cursor.basic_block.red   >  5     Then cursor.basic_block.red   :- 5
-					If KeyDown( Key_Y ) And cursor.basic_block.green >  5     Then cursor.basic_block.green :- 5
-					If KeyDown( Key_U ) And cursor.basic_block.blue  >  5     Then cursor.basic_block.blue  :- 5
-					If KeyDown( Key_I ) And cursor.basic_block.alpha >  0.050 Then cursor.basic_block.alpha :- 0.050
+					If KeyDown( Key_R ) And cursor.basic_block.red   >  5     Then cursor.basic_block.red   :- 5
+					If KeyDown( Key_T ) And cursor.basic_block.green >  5     Then cursor.basic_block.green :- 5
+					If KeyDown( Key_Y ) And cursor.basic_block.blue  >  5     Then cursor.basic_block.blue  :- 5
+					If KeyDown( Key_U ) And cursor.basic_block.alpha >  0.050 Then cursor.basic_block.alpha :- 0.050
 					
 				EndIf
 			EndIf
