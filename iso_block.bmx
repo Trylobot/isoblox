@@ -8,6 +8,7 @@ _______________________________
 EndRem
 
 Strict
+
 Import "coord.bmx"
 
 Type iso_block

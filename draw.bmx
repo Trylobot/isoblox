@@ -17,6 +17,7 @@ _______________________________
 EndRem
 
 Strict
+
 Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"

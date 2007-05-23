@@ -8,6 +8,7 @@ _______________________________
 EndRem
 
 Strict
+
 Import "globals.bmx"
 Import "fileman.bmx"
 Import "coord.bmx"
@@ -52,6 +53,9 @@ Type controller
 		grid = iso_grid.create(..
 			iso_coord.create( GRID_X, GRID_Y, GRID_Z ))
 		cursor = New iso_cursor
+		
+		'CURSOR.BASIC_BLOCK.ISOTYPE = 1
+		
 		cursor.offset = iso_coord.create( grid.size.x / 2, grid.size.y / 2, 0 )
 		cursor.select_ghost.resize( iso_coord.create( 1, 1, 1 ))
 		cursor.select_ghost.red   = 180
@@ -76,7 +80,7 @@ Type controller
 		keyboard_input()
 		draw()
 
-		DRAW_DEBUG_INFORMATION()
+		'DRAW_DEBUG_INFORMATION()
 		
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
 			last_tick = seconds.Ticks()
@@ -270,54 +274,46 @@ Type controller
 				command_insert( status, grid, cursor )
 			EndIf
 				
-		'TODO
-		'This be "full-auto" for basic cursor but only "semi-auto" for the larger cursor modes.
-		'finish the algorithm for rotation about an anchor so it can be used here!
-		'________________________________________
-		'ROTATING BASIC BLOCK OR ENTIRE SELECTION
-			Local operation = -1
-			
-			If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
-			
-				If KeyDown( Key_F )
-					operation = ROTATE_X_MINUS
-				ElseIf KeyDown( Key_G )
-					operation = ROTATE_Y_MINUS
-				ElseIf KeyDown( Key_H )
-					operation = ROTATE_Z_MINUS
+		'______________________________
+		'CYCLE CURSOR BASIC BLOCK GROUP
+		If KeyHit( Key_Tab )
+			cursor.group :+ 1
+			If cursor.group >= COUNT_GROUPS Then cursor.group = 0
+			cursor.basic_block.isotype = cursor.group_isotype[cursor.group]
+		EndIf
+		
+		'____________________
+		'ROTATING BASIC BLOCK
+			If KeyDown( Key_F ) Or KeyDown( Key_G ) Or KeyDown( Key_H ) And cursor.mode = CURSOR_BASIC
+				
+				Local operation
+				
+				If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
+				
+					If KeyDown( Key_F )
+						operation = ROTATE_X_PLUS
+					ElseIf KeyDown( Key_G )
+						operation = ROTATE_Y_PLUS
+					ElseIf KeyDown( Key_H )
+						operation = ROTATE_Z_PLUS
+					EndIf
+						
+				Else 'not keydown( ctrl )
+				
+					If KeyDown( Key_F )
+						operation = ROTATE_X_MINUS
+					ElseIf KeyDown( Key_G )
+						operation = ROTATE_Y_MINUS
+					ElseIf KeyDown( Key_H )
+						operation = ROTATE_Z_MINUS
+					EndIf
+						
 				EndIf
-					
-			Else 'not keydown( ctrl )
-			
-				If KeyDown( Key_F )
-					operation = ROTATE_X_PLUS
-				ElseIf KeyDown( Key_G )
-					operation = ROTATE_Y_PLUS
-				ElseIf KeyDown( Key_H )
-					operation = ROTATE_Z_PLUS
-				EndIf
-					
+				
+				cursor.basic_block.isotype = rotate( operation, cursor.basic_block.isotype )
+				cursor.group_isotype[cursor.group] = cursor.basic_block.isotype
+				
 			EndIf
-			
-			If operation <> -1
-				
-				Select cursor.mode
-					
-					Case CURSOR_BASIC
-						cursor.basic_block.isotype = rotate( operation, cursor.basic_block.isotype )
-						cursor.group_isotype[cursor.group] = cursor.basic_block.isotype
-						
-					Case CURSOR_BRUSH
-						
-						'stub
-						
-					Case CURSOR_SELECT
-						
-						'stub
-					
-				EndSelect
-				
-			EndIf	
 			
 		'TODO
 		'redesign the system for modifying the RGBA values for the basic block.
@@ -518,16 +514,8 @@ Type controller
 			SHOW_STATUS_MESSAGES = True
 			status.append( "$Ball layers $Dnormal" )
 		EndIf
-		
-		'______________________________
-		'CYCLE CURSOR BASIC BLOCK GROUP
-		If KeyHit( Key_Tab )
-			cursor.group :+ 1
-			If cursor.group >= COUNT_GROUPS Then cursor.group = 0
-			cursor.basic_block.isotype = cursor.group_isotype[cursor.group]
-		EndIf
-		
+			
 	EndMethod
-	
+
 EndType
 

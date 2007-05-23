@@ -29,7 +29,7 @@ EndRem
 
 Strict
 
-Import BRL.StandardIO
+'Import BRL.StandardIO
 
 Import "globals.bmx"
 Import "iso_block.bmx"
@@ -41,10 +41,51 @@ Import "iso_block.bmx"
 Function rotate_init()
 	
 	map_set_literal_definitions()
-	map_copy_duplicate_sets()
+	'map_copy_duplicate_sets()
 	map_calc_plus_rotations()
+
+	'PRINT_DEBUG()
 	
-	'print_checksum()
+EndFunction
+
+Function PRINT_DEBUG()
+	
+	'a type of development sanity check against manual entry errors
+	'prints the total number of times each isotype is referenced
+	Local checksum[] = New Int[ COUNT_BLOCKS ]
+	For Local operation = 0 To 5
+		For Local isotype = 0 To COUNT_BLOCKS - 1
+			
+			checksum[ rotation_map[ operation, isotype ]] :+ 1
+			
+		Next
+	Next
+	
+	Print "___________________________________________________________";
+	For Local isotype = 1 To 12
+	
+		Print "checksum[ " + isotype + " ] = " + checksum[ isotype ]
+		
+	Next
+	
+	Print "___________________________________________________________";
+	For Local isotype = 1 To 12
+		
+		Print "rotation_map[ X, " + isotype + " ] = { " + ..
+			rotation_map[ 0, isotype ] + ", " + ..
+			rotation_map[ 1, isotype ] + ", " + ..
+			rotation_map[ 2, isotype ] + ", " + ..
+			rotation_map[ 3, isotype ] + ", " + ..
+			rotation_map[ 4, isotype ] + ", " + ..
+			rotation_map[ 5, isotype ] + " }"
+		
+	Next
+	
+EndFunction
+
+Function rotate%( operation, isotype )
+	
+	Return rotation_map[ operation, isotype ]
 	
 EndFunction
 
@@ -80,18 +121,11 @@ Function rotate_about_anchor( operation, anchor:iso_coord, blocklist:TList )
 	
 EndFunction
 
-Function rotate:Int( operation, isotype )
-	
-	Return rotation_map[ operation, isotype ]
-	
-EndFunction
-
-Private Function map_copy_duplicate_sets()
+Function map_copy_duplicate_sets()
 	
 	'eliminates the need to explicitly define every literal definition using
 	'the ordering technique for matched-set blocks. this simply means that blocks
 	'that follow a previously-established rotation graph copy that graph plus some offset.
-	
 	For Local isotype = 37 To 60
 		For Local operation = 0 To 5
 		
@@ -99,67 +133,46 @@ Private Function map_copy_duplicate_sets()
 			
 		Next
 	Next
-	
 	For Local isotype = 69 To 76
 		For Local operation = 0 To 5
 		
-			rotation_map[ operation, isotype ] = 24 + rotation_map[ operation, isotype - 24 ]
+			rotation_map[ operation, isotype ] = 8 + rotation_map[ operation, isotype - 8 ]
 			
 		Next
 	Next
 	
 EndFunction
 
-Private Function map_calc_plus_rotations()
+Function map_calc_plus_rotations()
 	
-	Return	
-	
-	'cuts the number of literal definitions in half by using the principle that 
+	'cuts the number of required literal definitions by 50% using the principle that 
 	'rotating 90 degrees on an axis is the same as rotating 270 degrees, and therefore
-	'calculating the _MINUS rotation operations based on the existing literal ones
+	'calculating the _PLUS rotation operations based on the existing literal _MINUS operations
 	For Local operation = 3 To 5
-		For Local isotype = 0 To COUNT_BLOCKS
-		
-			rotation_map[ operation, isotype ] = ..
-				rotation_map[ operation-3, ..
-					rotation_map[ operation-3, ..
-						rotation_map[ operation-3, isotype ]]]
-			
-		Next
-	Next
-	
-EndFunction
-
-Private Function print_checksum()
-	
-	'a type of development sanity check against manual entry errors
-	'prints the total number of times each isotype is referenced
-
-	Local checksum[] = New Int[ COUNT_BLOCKS ]
-	
-	For Local operation = 0 To 5
 		For Local isotype = 0 To COUNT_BLOCKS - 1
+		
+			Local inverse_operation = operation - 3
 			
-			checksum[ rotation_map[ operation, isotype ]] :+ 1
+			rotation_map[ operation, isotype ] = ..
+				rotate( inverse_operation, ..
+				rotate( inverse_operation, ..
+				rotate( inverse_operation, isotype )))
 			
 		Next
 	Next
 	
-	For Local isotype = 0 To COUNT_BLOCKS - 1
-	
-		Print "checksum[ " + isotype + " ] = " + checksum[ isotype ]
-		
-	Next
-	
 EndFunction
 
-Private Function map_set_literal_definitions()
+Function map_set_literal_definitions()
 	
 	rotation_map = New Int[ 6, COUNT_BLOCKS ]
 	
 	rotation_map[ ROTATE_X_MINUS,  0 ] =  0
 	rotation_map[ ROTATE_Y_MINUS,  0 ] =  0
 	rotation_map[ ROTATE_Z_MINUS,  0 ] =  0
+	rotation_map[ ROTATE_X_PLUS ,  0 ] =  0
+	rotation_map[ ROTATE_Y_PLUS ,  0 ] =  0
+	rotation_map[ ROTATE_Z_PLUS ,  0 ] =  0
 	
 	rotation_map[ ROTATE_X_MINUS,  1 ] =  9
 	rotation_map[ ROTATE_Y_MINUS,  1 ] =  8
@@ -209,101 +222,101 @@ Private Function map_set_literal_definitions()
 	rotation_map[ ROTATE_Y_MINUS, 12 ] = 10
 	rotation_map[ ROTATE_Z_MINUS, 12 ] =  8
 	
-	rotation_map[ ROTATE_X_MINUS, 13 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 13 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 13 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 13 ] = 29
+	rotation_map[ ROTATE_Y_MINUS, 13 ] = 27
+	rotation_map[ ROTATE_Z_MINUS, 13 ] = 20
 	
-	rotation_map[ ROTATE_X_MINUS, 14 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 14 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 14 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 14 ] = 30
+	rotation_map[ ROTATE_Y_MINUS, 14 ] = 28
+	rotation_map[ ROTATE_Z_MINUS, 14 ] = 19
 	
-	rotation_map[ ROTATE_X_MINUS, 15 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 15 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 15 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 15 ] = 33
+	rotation_map[ ROTATE_Y_MINUS, 15 ] = 22
+	rotation_map[ ROTATE_Z_MINUS, 15 ] = 17
 	
-	rotation_map[ ROTATE_X_MINUS, 16 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 16 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 16 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 16 ] = 34
+	rotation_map[ ROTATE_Y_MINUS, 16 ] = 21
+	rotation_map[ ROTATE_Z_MINUS, 16 ] = 18
 	
-	rotation_map[ ROTATE_X_MINUS, 17 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 17 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 17 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 17 ] = 31
+	rotation_map[ ROTATE_Y_MINUS, 17 ] = 25
+	rotation_map[ ROTATE_Z_MINUS, 17 ] = 16
 	
-	rotation_map[ ROTATE_X_MINUS, 18 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 18 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 18 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 18 ] = 32
+	rotation_map[ ROTATE_Y_MINUS, 18 ] = 26
+	rotation_map[ ROTATE_Z_MINUS, 18 ] = 15
 	
-	rotation_map[ ROTATE_X_MINUS, 19 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 19 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 19 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 19 ] = 36
+	rotation_map[ ROTATE_Y_MINUS, 19 ] = 24
+	rotation_map[ ROTATE_Z_MINUS, 19 ] = 13
 	
-	rotation_map[ ROTATE_X_MINUS, 20 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 20 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 20 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 20 ] = 35
+	rotation_map[ ROTATE_Y_MINUS, 20 ] = 23
+	rotation_map[ ROTATE_Z_MINUS, 20 ] = 14
 	
-	rotation_map[ ROTATE_X_MINUS, 21 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 21 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 21 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 21 ] = 26
+	rotation_map[ ROTATE_Y_MINUS, 21 ] = 19
+	rotation_map[ ROTATE_Z_MINUS, 21 ] = 29
 	
-	rotation_map[ ROTATE_X_MINUS, 22 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 22 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 22 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 22 ] = 25
+	rotation_map[ ROTATE_Y_MINUS, 22 ] = 20
+	rotation_map[ ROTATE_Z_MINUS, 22 ] = 30
 	
-	rotation_map[ ROTATE_X_MINUS, 23 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 23 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 23 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 23 ] = 28
+	rotation_map[ ROTATE_Y_MINUS, 23 ] = 15
+	rotation_map[ ROTATE_Z_MINUS, 23 ] = 31
 	
-	rotation_map[ ROTATE_X_MINUS, 24 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 24 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 24 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 24 ] = 27
+	rotation_map[ ROTATE_Y_MINUS, 24 ] = 16
+	rotation_map[ ROTATE_Z_MINUS, 24 ] = 32
 	
-	rotation_map[ ROTATE_X_MINUS, 25 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 25 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 25 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 25 ] = 21
+	rotation_map[ ROTATE_Y_MINUS, 25 ] = 13
+	rotation_map[ ROTATE_Z_MINUS, 25 ] = 35
 	
-	rotation_map[ ROTATE_X_MINUS, 26 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 26 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 26 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 26 ] = 22
+	rotation_map[ ROTATE_Y_MINUS, 26 ] = 14
+	rotation_map[ ROTATE_Z_MINUS, 26 ] = 36
 	
-	rotation_map[ ROTATE_X_MINUS, 27 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 27 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 27 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 27 ] = 23
+	rotation_map[ ROTATE_Y_MINUS, 27 ] = 17
+	rotation_map[ ROTATE_Z_MINUS, 27 ] = 34
 	
-	rotation_map[ ROTATE_X_MINUS, 28 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 28 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 28 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 28 ] = 24
+	rotation_map[ ROTATE_Y_MINUS, 28 ] = 18
+	rotation_map[ ROTATE_Z_MINUS, 28 ] = 33
 	
-	rotation_map[ ROTATE_X_MINUS, 29 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 29 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 29 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 29 ] = 18
+	rotation_map[ ROTATE_Y_MINUS, 29 ] = 36
+	rotation_map[ ROTATE_Z_MINUS, 29 ] = 23
 	
-	rotation_map[ ROTATE_X_MINUS, 30 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 30 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 30 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 30 ] = 17
+	rotation_map[ ROTATE_Y_MINUS, 30 ] = 35
+	rotation_map[ ROTATE_Z_MINUS, 30 ] = 24
 	
-	rotation_map[ ROTATE_X_MINUS, 31 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 31 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 31 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 31 ] = 14
+	rotation_map[ ROTATE_Y_MINUS, 31 ] = 33
+	rotation_map[ ROTATE_Z_MINUS, 31 ] = 21
 	
-	rotation_map[ ROTATE_X_MINUS, 32 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 32 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 32 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 32 ] = 13
+	rotation_map[ ROTATE_Y_MINUS, 32 ] = 34
+	rotation_map[ ROTATE_Z_MINUS, 32 ] = 22
 	
-	rotation_map[ ROTATE_X_MINUS, 33 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 33 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 33 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 33 ] = 19
+	rotation_map[ ROTATE_Y_MINUS, 33 ] = 32
+	rotation_map[ ROTATE_Z_MINUS, 33 ] = 25
 	
-	rotation_map[ ROTATE_X_MINUS, 34 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 34 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 34 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 34 ] = 20
+	rotation_map[ ROTATE_Y_MINUS, 34 ] = 31
+	rotation_map[ ROTATE_Z_MINUS, 34 ] = 26
 	
-	rotation_map[ ROTATE_X_MINUS, 35 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 35 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 35 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 35 ] = 16
+	rotation_map[ ROTATE_Y_MINUS, 35 ] = 29
+	rotation_map[ ROTATE_Z_MINUS, 35 ] = 28
 	
-	rotation_map[ ROTATE_X_MINUS, 36 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 36 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 36 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 36 ] = 15
+	rotation_map[ ROTATE_Y_MINUS, 36 ] = 30
+	rotation_map[ ROTATE_Z_MINUS, 36 ] = 27
 	
 	rotation_map[ ROTATE_X_MINUS, 61 ] =  0
 	rotation_map[ ROTATE_Y_MINUS, 61 ] =  0
