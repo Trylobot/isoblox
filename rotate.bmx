@@ -29,7 +29,7 @@ EndRem
 
 Strict
 
-'Import BRL.StandardIO
+Import BRL.StandardIO
 
 Import "globals.bmx"
 Import "iso_block.bmx"
@@ -41,10 +41,10 @@ Import "iso_block.bmx"
 Function rotate_init()
 	
 	map_set_literal_definitions()
-	'map_copy_duplicate_sets()
+	map_copy_duplicate_sets()
 	map_calc_plus_rotations()
 
-	'PRINT_DEBUG()
+	PRINT_DEBUG()
 	
 EndFunction
 
@@ -62,14 +62,14 @@ Function PRINT_DEBUG()
 	Next
 	
 	Print "___________________________________________________________";
-	For Local isotype = 1 To 12
+	For Local isotype = 0 To COUNT_BLOCKS - 1
 	
 		Print "checksum[ " + isotype + " ] = " + checksum[ isotype ]
 		
 	Next
 	
 	Print "___________________________________________________________";
-	For Local isotype = 1 To 12
+	For Local isotype = 0 To COUNT_BLOCKS - 1
 		
 		Print "rotation_map[ X, " + isotype + " ] = { " + ..
 			rotation_map[ 0, isotype ] + ", " + ..
@@ -318,23 +318,23 @@ Function map_set_literal_definitions()
 	rotation_map[ ROTATE_Y_MINUS, 36 ] = 30
 	rotation_map[ ROTATE_Z_MINUS, 36 ] = 27
 	
-	rotation_map[ ROTATE_X_MINUS, 61 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 61 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 61 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 61 ] = 63
+	rotation_map[ ROTATE_Y_MINUS, 61 ] = 65
+	rotation_map[ ROTATE_Z_MINUS, 61 ] = 64
 	
-	rotation_map[ ROTATE_X_MINUS, 62 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 62 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 62 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 62 ] = 66
+	rotation_map[ ROTATE_Y_MINUS, 62 ] = 63
+	rotation_map[ ROTATE_Z_MINUS, 62 ] = 63
 	
-	rotation_map[ ROTATE_X_MINUS, 63 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 63 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 63 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 63 ] = 67
+	rotation_map[ ROTATE_Y_MINUS, 63 ] = 67
+	rotation_map[ ROTATE_Z_MINUS, 63 ] = 61
 	
-	rotation_map[ ROTATE_X_MINUS, 64 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 64 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 64 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 64 ] = 62
+	rotation_map[ ROTATE_Y_MINUS, 64 ] = 61
+	rotation_map[ ROTATE_Z_MINUS, 64 ] = 62
 	
-	rotation_map[ ROTATE_X_MINUS, 65 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 65 ] = 61
 	rotation_map[ ROTATE_Y_MINUS, 65 ] =  0
 	rotation_map[ ROTATE_Z_MINUS, 65 ] =  0
 	
