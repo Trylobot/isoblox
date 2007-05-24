@@ -7,6 +7,12 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+ - fix the iso_face class so selecting the entire grid isn't so slow!
+ - redesign the system for modifying the RGBA values for the basic block.
+EndRem
+
 Strict
 
 Import "globals.bmx"
@@ -80,7 +86,7 @@ Type controller
 		keyboard_input()
 		draw()
 
-		'DRAW_DEBUG_INFORMATION()
+		DRAW_DEBUG_INFORMATION()
 		
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
 			last_tick = seconds.Ticks()
@@ -243,8 +249,6 @@ Type controller
 		ElseIf KeyHit( Key_F5 ) And cursor.mode = CURSOR_SELECT
 			command_copy( status, grid, cursor )
 		
-		'TODO
-		'fix the iso_face class so this isn't so slow!		
 		Rem
 		'_____________________
 		'SELECTING ENTIRE GRID
@@ -315,8 +319,6 @@ Type controller
 				
 			EndIf
 			
-		'TODO
-		'redesign the system for modifying the RGBA values for the basic block.
 		'__________________________________________
 		'CHANGING CURSOR BASIC BLOCK R,G,B,A VALUES
 			If KeyDown( Key_R ) Or KeyDown( Key_T ) Or KeyDown( Key_Y ) Or KeyDown( Key_U ) And cursor.mode = CURSOR_BASIC

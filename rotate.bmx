@@ -27,16 +27,17 @@ geometry groupings
 _______________________________
 EndRem
 
+Rem
+TODO
+ - finish the rotate_about_anchor function
+EndRem
+
 Strict
 
-Import BRL.StandardIO
+'Import BRL.StandardIO
 
 Import "globals.bmx"
 Import "iso_block.bmx"
-
-'TODO
-'1. finish the rotation_map matrix
-'2. finish the rotate_about_anchor algorithm
 
 Function rotate_init()
 	
@@ -44,7 +45,7 @@ Function rotate_init()
 	map_copy_duplicate_sets()
 	map_calc_plus_rotations()
 
-	PRINT_DEBUG()
+	'PRINT_DEBUG()
 	
 EndFunction
 
@@ -335,20 +336,20 @@ Function map_set_literal_definitions()
 	rotation_map[ ROTATE_Z_MINUS, 64 ] = 62
 	
 	rotation_map[ ROTATE_X_MINUS, 65 ] = 61
-	rotation_map[ ROTATE_Y_MINUS, 65 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 65 ] =  0
+	rotation_map[ ROTATE_Y_MINUS, 65 ] = 68
+	rotation_map[ ROTATE_Z_MINUS, 65 ] = 68
 	
-	rotation_map[ ROTATE_X_MINUS, 66 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 66 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 66 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 66 ] = 68
+	rotation_map[ ROTATE_Y_MINUS, 66 ] = 62
+	rotation_map[ ROTATE_Z_MINUS, 66 ] = 67
 	
-	rotation_map[ ROTATE_X_MINUS, 67 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 67 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 67 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 67 ] = 65
+	rotation_map[ ROTATE_Y_MINUS, 67 ] = 66
+	rotation_map[ ROTATE_Z_MINUS, 67 ] = 65
 	
-	rotation_map[ ROTATE_X_MINUS, 68 ] =  0
-	rotation_map[ ROTATE_Y_MINUS, 68 ] =  0
-	rotation_map[ ROTATE_Z_MINUS, 68 ] =  0
+	rotation_map[ ROTATE_X_MINUS, 68 ] = 64
+	rotation_map[ ROTATE_Y_MINUS, 68 ] = 64
+	rotation_map[ ROTATE_Z_MINUS, 68 ] = 66
 	
 EndFunction
 

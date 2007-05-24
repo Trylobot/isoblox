@@ -7,6 +7,11 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+ - fix expand_grid_for_cursor, it's broken
+EndRem
+
 Strict
 
 Import "globals.bmx"
@@ -19,7 +24,6 @@ Import "message_nanny.bmx"
 
 Function expand_grid_for_cursor( grid:iso_grid, cursor:iso_cursor )
 	
-	'buggy again
 	Rem
 	Select cursor.mode
 		Case CURSOR_BASIC
@@ -92,7 +96,7 @@ Function command_copy( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 		cursor.mode = CURSOR_BRUSH
 		status.append( "selection $gcopied $Dto brush" )
 	
-	Else 'Not intersect_list.isEmpty()
+	Else 'intersect_list.isEmpty()
 	
 		status.append( "$bnothing to copy" )
 		

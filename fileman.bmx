@@ -7,6 +7,11 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+ - shorten up the reported paths and make them relative to the executable instead of absolute
+EndRem
+
 Strict
 
 Import BRL.Blitz
