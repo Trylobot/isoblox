@@ -23,6 +23,8 @@ Import "controller.bmx"
 Incbin "art/spritelib_blocks.png"
 Incbin "art/spritelib_faces.png"
 Incbin "art/spritelib_font.png"
+Incbin "sound/high_click.ogg"
+Incbin "sound/low_click-click.ogg"
 
 'initialization
 If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()
