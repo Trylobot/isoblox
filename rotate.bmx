@@ -49,6 +49,7 @@ Function rotate_init()
 	
 EndFunction
 
+Rem
 Function PRINT_DEBUG()
 	
 	'a type of development sanity check against manual entry errors
@@ -83,6 +84,7 @@ Function PRINT_DEBUG()
 	Next
 	
 EndFunction
+EndRem
 
 Function rotate%( operation, isotype )
 	

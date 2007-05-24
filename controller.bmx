@@ -86,7 +86,7 @@ Type controller
 		keyboard_input()
 		draw()
 
-		DRAW_DEBUG_INFORMATION()
+		'DRAW_DEBUG_INFORMATION()
 		
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
 			last_tick = seconds.Ticks()
@@ -101,8 +101,7 @@ Type controller
 				
 	EndMethod
 	
-
-'_________________________________________________________________________
+	Rem
 	Method DRAW_DEBUG_INFORMATION()
 		
 		SetOrigin( 0, 0 )
@@ -111,6 +110,7 @@ Type controller
 		draw_msg( cursor.basic_block.str(), scr )
 		
 	EndMethod
+	EndRem
 	
 '_________________________________________________________________________
 	Method draw()

@@ -67,9 +67,16 @@ Function fileman_load_cfg_auto()
 	
 	Local file_in:TStream = ReadFile( CONFIG_FILENAME )
 	If Not file_in
+	
+		If Not fileman_save_cfg_auto()
+			Return False
 		
-		Return False
-		
+		Else 'fileman_save_cfg_auto() completed successfully
+			'report load completion due to the fact that the variables written to disk
+			'will be the same as the ones already loaded into memory from hard-coded values
+			Return True
+			
+		EndIf
 	EndIf
 	
 	Local found_title = False
