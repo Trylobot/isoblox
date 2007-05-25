@@ -7,6 +7,11 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+ - make resize more efficient by analyzing previous size and changing a minimal amount of data
+EndRem
+
 Strict
 
 Import "globals.bmx"
@@ -310,9 +315,6 @@ Type iso_ghost_grid
 	EndFunction
 	
 	Method resize( new_size:iso_coord )
-		
-		'TODO
-		'make more efficient by analyzing previous size and changing a minimal amount of data
 		
 		'ensure new_size is nonzero for all dimensions
 		If (new_size.x > 0) And (new_size.y > 0) And (new_size.z > 0)

@@ -15,6 +15,8 @@ EndRem
 
 Strict
 
+Import BRL.FreeAudioAudio
+
 Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"
