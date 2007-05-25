@@ -58,7 +58,8 @@ EndFunction
 '_________________________________________________________________________
 Function fileman_load_sound()
 	
-	'stub
+	high_click = LoadSound( "incbin::sound/high_click.ogg" )
+	low_click = LoadSound( "incbin::sound/low_click.ogg" )
 	
 EndFunction
 

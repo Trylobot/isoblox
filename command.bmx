@@ -10,6 +10,7 @@ EndRem
 Rem
 TODO
  - fix expand_grid_for_cursor, it's broken
+ - migrate the actual command actions into here. some of them still remain in controller.
 EndRem
 
 Strict
@@ -130,6 +131,7 @@ Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor 
 			Local new_block:iso_block = cursor.basic_block.copy()
 			new_block.offset = cursor.offset.copy()
 			grid.insert_new_block( new_block )
+			If SOUND Then PlaySound( high_click )
 			
 		Case CURSOR_BRUSH
 			

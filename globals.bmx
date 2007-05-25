@@ -19,6 +19,7 @@ Global SCREEN_HEIGHT = 350
 Global GRID_X = 16
 Global GRID_Y = 16
 Global GRID_Z = 16
+Global SOUND = True
 Global GRID_MAJOR_INTERVAL = 8
 Global ORIGIN_X = SCREEN_WIDTH / 2
 Global ORIGIN_Y = SCREEN_HEIGHT / 2
@@ -84,4 +85,7 @@ Const TOKEN_PURPLE$   = "$p"
 Global spritelib_font:TImage[ 128 ]
 Global spritelib_font_map:TPixmap
 Const test_str$ = "$B !~q#$%'()*+$D,-./01234567$r89:;<=>?@ABC$gDEFGHIJKLMNO$bPQRSTUVWXYZ[$y\]^_`abcdefg$chijklmnopqrs$ptuvwxyz{|}~~"
+
+Global high_click:TSound
+Global low_click:TSound
 
