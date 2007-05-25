@@ -16,6 +16,7 @@ Strict
 
 Import BRL.Blitz
 Import BRL.PNGLoader
+Import BRL.WAVLoader
 
 Import "globals.bmx"
 Import "coord.bmx"
@@ -58,8 +59,8 @@ EndFunction
 '_________________________________________________________________________
 Function fileman_load_sound()
 	
-	high_click = LoadSound( "incbin::sound/high_click.ogg" )
-	low_click = LoadSound( "incbin::sound/low_click.ogg" )
+	high_click = LoadSound( "incbin::sound/high_click.wav" )
+	low_click = LoadSound( "incbin::sound/low_click.wav" )
 	
 EndFunction
 

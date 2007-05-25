@@ -11,7 +11,6 @@ Strict
 
 Framework BRL.GLMax2D
 Import BRL.System
-Import BRL.Timer
 Import BRL.RamStream
 
 ?win32
@@ -23,8 +22,8 @@ Import "controller.bmx"
 Incbin "art/spritelib_blocks.png"
 Incbin "art/spritelib_faces.png"
 Incbin "art/spritelib_font.png"
-Incbin "sound/high_click.ogg"
-Incbin "sound/low_click-click.ogg"
+Incbin "sound/high_click.wav"
+Incbin "sound/low_click.wav"
 
 'initialization
 If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()
@@ -43,8 +42,8 @@ isoblox.load_assets()
 'main program loop
 Repeat	
 	
-	Cls            'clear screen
-	isoblox.chug() 'process one frame of input and drawing
+	isoblox.chug   'process one frame of input and drawing
 	Flip(1)        'flip backbuffer to screen after vertical sync
+	Cls            'clear screen
 	
 Forever

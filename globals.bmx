@@ -10,6 +10,7 @@ EndRem
 Strict
 
 Import BRL.Timer
+Import BRL.Audio
 
 Const PROJECT_VERSION$ = "alpha 4"
 Const CONFIG_FILENAME$ = "isoblox.cfg"
