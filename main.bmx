@@ -13,12 +13,12 @@ Framework BRL.GLMax2D
 Import BRL.System
 Import BRL.RamStream
 
-?win32
-Import "windows32.bmx"
-?
 Import "globals.bmx"
 Import "controller.bmx"
 
+?win32
+Import "windows32.bmx"
+?
 Incbin "art/spritelib_blocks.png"
 Incbin "art/spritelib_faces.png"
 Incbin "art/spritelib_font.png"
@@ -31,6 +31,7 @@ AppTitle = "isoblox " + PROJECT_VERSION
 Graphics( SCREEN_WIDTH, SCREEN_HEIGHT )
 SetClsColor( 255, 255, 255 )
 SetBlend( ALPHABLEND )
+
 ?win32
 set_window( WS_MINIMIZEBOX )
 ?
@@ -40,10 +41,10 @@ Local isoblox:controller = New controller
 isoblox.load_assets()
 
 'main program loop
-Repeat	
+While Not AppTerminate()	And Not KeyDown( Key_Escape )
 	
 	isoblox.chug   'process one frame of input and drawing
 	Flip(1)        'flip backbuffer to screen after vertical sync
 	Cls            'clear screen
 	
-Forever
+EndWhile

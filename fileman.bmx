@@ -10,6 +10,7 @@ EndRem
 Rem
 TODO
  - shorten up the reported paths and make them relative to the executable instead of absolute
+ - make an in-house file chooser with preview window for choosing files using my gui system
 EndRem
 
 Strict

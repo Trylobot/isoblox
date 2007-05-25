@@ -9,6 +9,7 @@ EndRem
 
 Rem
 TODO
+ - cleanup the keyboard_input function. it is currently creating status messages and executing commands, but it should only be calling commands in the command module based on keyboard input. status messages should be reserved for the command module.
  - fix the iso_face class so selecting the entire grid isn't so slow!
  - redesign the system for modifying the RGBA values for the basic block.
 EndRem
@@ -102,6 +103,7 @@ Type controller
 	EndMethod
 	
 	Rem
+'_________________________________________________________________________
 	Method DRAW_DEBUG_INFORMATION()
 		
 		SetOrigin( 0, 0 )
@@ -173,7 +175,6 @@ Type controller
 			"$Bisoblox $bhelp~n"+..
 			"~n"+..
 			"show/hide this text   $BF1~n"+..
-			"exit app              $Besc~n"+..
 			"$Bbasic $Dblock tool      $BZ~n"+..
 			"$Bbrush $Dtool            $BX~n"+..
 			"$Bselection $Dtool        $BC~n"+..
@@ -211,8 +212,6 @@ Type controller
 	
 '_________________________________________________________________________
 	Method keyboard_input()
-		
-		If KeyDown( Key_Escape ) Then End
 		
 		Local patience = False
 		If program_timer_ticks < program_timer.Ticks()
@@ -255,29 +254,9 @@ Type controller
 		ElseIf KeyHit( Key_F8 )
 			command_select_all( status, grid, cursor )			
 		EndRem
-			
-		EndIf
-			
-		If patience 
 		
-		'_________________
-		'MOVING THE CURSOR
-			If Not ..
-			(KeyDown( Key_LShift ) Or KeyDown( Key_RShift ) Or ..
-			KeyDown( Key_LControl ) Or KeyDown( Key_RControl ))
-				command_move_cursor( status, grid, cursor, ..
-					iso_coord.create( ..
-						-KeyDown( Key_A )+KeyDown( Key_D ), ..
-						-KeyDown( Key_W )+KeyDown( Key_S ), ..
-						-KeyDown( Key_E )+KeyDown( Key_Q )))
-			EndIf
-			
-		'_________________________
-		'INSERTING CURSOR CONTENTS
-			If KeyDown( Key_Space )
-				command_insert( status, grid, cursor )
-			EndIf
-				
+		EndIf
+		
 		'______________________________
 		'CYCLE CURSOR BASIC BLOCK GROUP
 		If KeyHit( Key_Tab )
@@ -286,6 +265,32 @@ Type controller
 			cursor.basic_block.isotype = cursor.group_isotype[cursor.group]
 		EndIf
 		
+		'_________________________
+		'INSERTING CURSOR CONTENTS
+		If KeyHit( Key_Space )
+			command_insert( status, grid, cursor )
+		EndIf
+			
+		'________________________
+		'DELETING CURSOR CONTENTS
+		If KeyHit( Key_Tilde )
+			command_delete( grid, cursor )
+		EndIf
+		
+		If patience 
+		
+		'_________________
+		'MOVING THE CURSOR
+			If Not ..
+				(KeyDown( Key_LShift ) Or KeyDown( Key_RShift ) Or KeyDown( Key_LControl ) Or KeyDown( Key_RControl )) ..
+				And ..
+				(KeyDown( Key_A ) Or KeyDown( Key_D ) Or KeyDown( Key_W ) Or KeyDown( Key_S ) Or KeyDown( Key_E ) Or KeyDown( Key_Q ))
+				command_move_cursor( status, grid, cursor, 	iso_coord.create( ..
+					-KeyDown( Key_A )+KeyDown( Key_D ), ..
+					-KeyDown( Key_W )+KeyDown( Key_S ), ..
+					-KeyDown( Key_E )+KeyDown( Key_Q )))
+			EndIf
+			
 		'____________________
 		'ROTATING BASIC BLOCK
 			If KeyDown( Key_F ) Or KeyDown( Key_G ) Or KeyDown( Key_H ) And cursor.mode = CURSOR_BASIC
@@ -366,7 +371,7 @@ Type controller
 				
 				If Not new_size.equal( cursor.select_ghost.size )
 					cursor.select_ghost.resize( new_size )
-					expand_grid_for_cursor( grid, cursor )
+					command_expand_grid_for_cursor( grid, cursor )
 				EndIf
 		
 			EndIf
@@ -397,55 +402,28 @@ Type controller
 				
 				If Not new_size.equal( grid.size )
 					grid.resize( new_size )
-					expand_grid_for_cursor( grid, cursor )
+					command_expand_grid_for_cursor( grid, cursor )
 				EndIf
 		
 			EndIf
-		
-		'________________________
-		'DELETING CURSOR CONTENTS
-			If KeyDown( Key_Tilde )
-			
-				Select cursor.mode
-				
-					Case CURSOR_BASIC
-						
-						grid.erase_at_offset( cursor.offset )
-						
-					Case CURSOR_BRUSH
-						
-						For Local iter:iso_block = EachIn cursor.brush_grid.blocklist
-							grid.erase_at_offset( cursor.offset.add( iter.offset ))
-						Next
-						
-					Case CURSOR_SELECT
-				
-						Local hit_list:TList = grid.intersection_with_ghost( cursor.offset, cursor.select_ghost )
-						For Local iter:iso_block = EachIn hit_list
-							grid.erase_at_offset( iter.offset )
-						Next
-						
-				EndSelect
-				
-			EndIf
-			
+					
 		EndIf
 		
 		'________________________
 		'CHANGING THE CURSOR MODE
 		If KeyHit( Key_Z )
 			cursor.mode = CURSOR_BASIC
-			expand_grid_for_cursor( grid, cursor )
+			command_expand_grid_for_cursor( grid, cursor )
 		ElseIf KeyHit( Key_X )
 			If cursor.brush_grid.empty()
 				status.append( "$ywarning; cannot use brush tool $D(must load a brush first)" )
 			Else	
 				cursor.mode = CURSOR_BRUSH
-				expand_grid_for_cursor( grid, cursor )
+				command_expand_grid_for_cursor( grid, cursor )
 			EndIf
 		ElseIf KeyHit( Key_C )
 			cursor.mode = CURSOR_SELECT
-			expand_grid_for_cursor( grid, cursor )
+			command_expand_grid_for_cursor( grid, cursor )
 		EndIf
 		
 		'_________________

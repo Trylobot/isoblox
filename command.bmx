@@ -9,7 +9,7 @@ EndRem
 
 Rem
 TODO
- - fix expand_grid_for_cursor, it's broken
+ - fix command_expand_grid_for_cursor, it's broken
  - migrate the actual command actions into here. some of them still remain in controller.
 EndRem
 
@@ -25,18 +25,81 @@ Import "iso_cursor.bmx"
 Import "fileman.bmx"
 Import "message_nanny.bmx"
 
-Function expand_grid_for_cursor( grid:iso_grid, cursor:iso_cursor )
+Function command_move_cursor( status:message_nanny, grid:iso_grid, cursor:iso_cursor, delta:iso_coord )
+		
+	If Not cursor.offset.add( delta ).is_invalid()
+		cursor.offset = cursor.offset.add( delta )
+		command_expand_grid_for_cursor( grid, cursor )
+	Else
+		
+	EndIf
 	
-	Rem
+EndFunction
+
+Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
+
+	If SOUND Then PlaySound( high_click )
+	
+	Select cursor.mode
+	
+		Case CURSOR_BASIC
+	
+			Local new_block:iso_block = cursor.basic_block.copy()
+			new_block.offset = cursor.offset.copy()
+			grid.insert_new_block( new_block )
+			
+		Case CURSOR_BRUSH
+			
+			Local new_block:iso_block
+			Local iter:iso_block
+			
+			For iter = EachIn cursor.brush_grid.blocklist
+				new_block = iter.copy()
+				new_block.offset = cursor.offset.add( iter.offset )
+				grid.insert_new_block( new_block )
+			Next
+			
+	EndSelect
+
+EndFunction
+
+Function command_delete( grid:iso_grid, cursor:iso_cursor )
+	
+	If SOUND Then PlaySound( low_click )
+	
+	Select cursor.mode
+	
+		Case CURSOR_BASIC
+			grid.erase_at_offset( cursor.offset )
+			
+		Case CURSOR_BRUSH
+			For Local iter:iso_block = EachIn cursor.brush_grid.blocklist
+				grid.erase_at_offset( cursor.offset.add( iter.offset ))
+			Next
+			
+		Case CURSOR_SELECT
+			Local hit_list:TList = grid.intersection_with_ghost( cursor.offset, cursor.select_ghost )
+			For Local iter:iso_block = EachIn hit_list
+				grid.erase_at_offset( iter.offset )
+			Next
+			
+	EndSelect
+	
+EndFunction
+
+Function command_expand_grid_for_cursor( grid:iso_grid, cursor:iso_cursor )
+	
 	Select cursor.mode
 		Case CURSOR_BASIC
 			grid.expand_for_subvolume( cursor.offset, iso_coord.create( 1, 1, 1 ))
+			
 		Case CURSOR_BRUSH
 			grid.expand_for_subvolume( cursor.offset, cursor.brush_grid.size )
+			
 		Case CURSOR_SELECT
 			grid.expand_for_subvolume( cursor.offset, cursor.select_ghost.size )
+			
 	EndSelect
-	EndRem
 	
 EndFunction
 
@@ -58,7 +121,7 @@ Function command_brush_load( status:message_nanny, grid:iso_grid, cursor:iso_cur
 		status.append( "loading $Biso_grid $Das $Bbrush $Dfrom [$B" + filename + "$D] ..." )
 		cursor.mode = CURSOR_BRUSH
 		cursor.brush_grid.reduce_to_contents()
-		expand_grid_for_cursor( grid, cursor )
+		command_expand_grid_for_cursor( grid, cursor )
 		status.append( "cursor brush $gloaded successfully" )
 		
 	Else 'filename = "ERROR"
@@ -74,7 +137,7 @@ Function command_grid_load( status:message_nanny, grid:iso_grid, cursor:iso_curs
 	If filename <> "ERROR"
 		
 		status.append( "loading $Biso_grid $Dfrom [$B" + filename + "$D] ..." )
-		expand_grid_for_cursor( grid, cursor )
+		command_expand_grid_for_cursor( grid, cursor )
 		status.append( "iso_grid $gloaded successfully" )
 		
 	Else 'filename = "ERROR"
@@ -115,37 +178,3 @@ Function command_select_all( status:message_nanny, grid:iso_grid, cursor:iso_cur
 	
 EndFunction
 
-Function command_move_cursor( status:message_nanny, grid:iso_grid, cursor:iso_cursor, delta:iso_coord )
-		
-	If Not cursor.offset.add( delta ).is_invalid()
-		cursor.offset = cursor.offset.add( delta )
-		expand_grid_for_cursor( grid, cursor )
-	EndIf
-	
-EndFunction
-
-Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
-
-	Select cursor.mode
-	
-		Case CURSOR_BASIC
-	
-			Local new_block:iso_block = cursor.basic_block.copy()
-			new_block.offset = cursor.offset.copy()
-			grid.insert_new_block( new_block )
-			If SOUND Then PlaySound( high_click )
-			
-		Case CURSOR_BRUSH
-			
-			Local new_block:iso_block
-			Local iter:iso_block
-			
-			For iter = EachIn cursor.brush_grid.blocklist
-				new_block = iter.copy()
-				new_block.offset = cursor.offset.add( iter.offset )
-				grid.insert_new_block( new_block )
-			Next
-			
-	EndSelect
-
-EndFunction
