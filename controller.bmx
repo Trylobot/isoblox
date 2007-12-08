@@ -9,6 +9,7 @@ EndRem
 
 Rem
 TODO
+ - cache the background line grid and only redraw on resize
  - cleanup the keyboard_input function. it is currently creating status messages and executing commands, but it should only be calling commands in the command module based on keyboard input. status messages should be reserved for the command module.
  - fix the iso_face class so selecting the entire grid isn't so slow!
  - redesign the system for modifying the RGBA values for the basic block.
@@ -35,7 +36,7 @@ Type controller
 	Field mouse:scr_coord      'last recorded mouse coordinates
 	
 	Field REDRAW_BG            'background validity indicator
-	Field TPixmap:bg_cache     'background texture
+	'Field TPixmap:bg_cache     'background texture
 	
 	Field grid:iso_grid        'root-level isometric grid
 	Field cursor:iso_cursor    'root-level isometric cursor
