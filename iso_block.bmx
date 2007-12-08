@@ -124,8 +124,6 @@ Type iso_face
 	
 	'TODO
 	'OPTIMIZE THIS:
-	'instead of a glass box, imagine a glass wireframe!
-	'will be faster.
 	'one piece for each of the four corners of each side     (24)
 	'plus one piece for each of the four edges of each sides (24) = (48 total)
 	'this will require more "face types" and such
@@ -138,7 +136,7 @@ Type iso_face
 		
 	EndMethod
 	
-	Function Create:iso_face( initial_facetype, initial_offset:iso_coord )
+	Function Create:iso_face( initial_face, initial_facetype, initial_offset:iso_coord )
 		
 		Local new_face:iso_face = New iso_face
 		new_face.facetype = initial_facetype

@@ -10,6 +10,7 @@ EndRem
 Rem
 TODO
  - make resize more efficient, by analyzing previous size and changing a minimal amount of data
+ - fix boundary checks
  - reconstruct the select_ghost resizing and initializing; it's fuxx0red
 EndRem
 
@@ -294,10 +295,6 @@ Type iso_ghost_grid
 	
 	Field size:iso_coord 'dimensions of grid
 	Field facelist:TList 'list of [iso_face] objects
-	Field red            'color
-	Field green          'color
-	Field blue           'color
-	Field alpha#         'alpha
 	
 	Method New()
 		

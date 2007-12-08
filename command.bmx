@@ -91,7 +91,7 @@ Function command_expand_grid_for_cursor( grid:iso_grid, cursor:iso_cursor )
 	
 	Select cursor.mode
 		Case CURSOR_BASIC
-			grid.expand_for_subvolume( cursor.offset, iso_coord.create( 1, 1, 1 ))
+			grid.expand_for_subvolume( cursor.offset, iso_coord.Create( 1, 1, 1 ))
 			
 		Case CURSOR_BRUSH
 			grid.expand_for_subvolume( cursor.offset, cursor.brush_grid.size )

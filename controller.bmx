@@ -10,7 +10,10 @@ EndRem
 Rem
 TODO
  - cache the background line grid and only redraw on resize
- - cleanup the keyboard_input function. it is currently creating status messages and executing commands, but it should only be calling commands in the command module based on keyboard input. status messages should be reserved for the command module.
+ - cleanup the keyboard_input function. it is currently creating status messages
+   and executing commands, but it should only be calling commands in the command
+   module based on keyboard input. status messages should be reserved for the command module.
+ - fix the boundary checks so that when blocks are moved past a boundary, the isogrid is resized accordingly
  - fix the iso_face class so selecting the entire grid isn't so slow!
  - redesign the system for modifying the RGBA values for the basic block.
 EndRem
@@ -36,7 +39,7 @@ Type controller
 	Field mouse:scr_coord      'last recorded mouse coordinates
 	
 	Field REDRAW_BG            'background validity indicator
-	'Field TPixmap:bg_cache     'background texture
+	Field bg_cache:TImage      'background image cached texture
 	
 	Field grid:iso_grid        'root-level isometric grid
 	Field cursor:iso_cursor    'root-level isometric cursor
@@ -124,16 +127,25 @@ Type controller
 		SetOrigin( ORIGIN_X, ORIGIN_Y )
 		ALPHA_BLINK_1 = 0.750 + 0.250 * Sin( cursor_blink_timer.Ticks() )
 		ALPHA_BLINK_2 = 0.500 - 0.250 * Sin( cursor_blink_timer.Ticks() )
+
+		If SHOW_GRIDLINES
+			If Not REDRAW_BG
+				SetColor( 255, 255, 255 )
+				SetAlpha( 1.000 )
+				DrawImage( bg_cache, 0, 0 )
+			Else
+				draw_gridlines( grid )
+				bg_cache = LoadImage( GrabPixmap( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT ))
+				SetImageHandle( bg_cache, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 )
+				REDRAW_BG = False
+			EndIf
+		EndIf
 		
 		If SHOW_SHADOWS And SHOW_BLOCKS
 			draw_block_shadows( grid )
 			If SHOW_CURSOR
 				draw_cursor_shadows( cursor )
 			EndIf
-		EndIf
-		
-		If SHOW_GRIDLINES
-			draw_gridlines( grid )
 		EndIf
 		
 		If SHOW_OUTLINES
@@ -407,6 +419,7 @@ Type controller
 				If Not new_size.equal( grid.size )
 					grid.resize( new_size )
 					command_expand_grid_for_cursor( grid, cursor )
+					REDRAW_BG = True
 				EndIf
 		
 			EndIf

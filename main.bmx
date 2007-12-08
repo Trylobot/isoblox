@@ -30,6 +30,7 @@ If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()
 AppTitle = "isoblox " + PROJECT_VERSION
 Graphics( SCREEN_WIDTH, SCREEN_HEIGHT )
 SetClsColor( 255, 255, 255 )
+Cls
 SetBlend( ALPHABLEND )
 
 ?win32
