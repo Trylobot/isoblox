@@ -42,27 +42,21 @@ Global spritelib_blocks_map:TPixmap
 Const COUNT_GROUPS = 6
 Global group_starting_index[] = [ 0, 1, 13, 37, 61, 69 ]
 
-Const COUNT_GHOST_FRAMES = 1
-Global spritelib_faces:TImage[ 6, COUNT_GHOST_FRAMES ]
+Const COUNT_FACE_LIBS = 6
+Const COUNT_FACES     = 8
+Global spritelib_faces:TImage[ COUNT_FACE_LIBS, COUNT_FACES ]
 Global spritelib_faces_map:TPixmap
 
-Const LIB_BLOCKS       = 0
-Const LIB_WIREFRAMES   = 1
-Const LIB_OUTLINES     = 2
-Const LIB_SHADOWS_XY   = 3
-Const LIB_SHADOWS_YZ   = 4
-Const LIB_SHADOWS_XZ   = 5
+Const LIB_BLOCKS     = 0
+Const LIB_WIREFRAMES = 1
+Const LIB_OUTLINES   = 2
+Const LIB_SHADOWS_XY = 3
+Const LIB_SHADOWS_YZ = 4
+Const LIB_SHADOWS_XZ = 5
 
 Const CURSOR_BASIC  = 0
 Const CURSOR_BRUSH  = 1
 Const CURSOR_SELECT = 2
-
-Const FACE_XY_MINUS = 0
-Const FACE_YZ_MINUS = 1
-Const FACE_XZ_MINUS = 2
-Const FACE_XY_PLUS  = 3
-Const FACE_YZ_PLUS  = 4
-Const FACE_XZ_PLUS  = 5
 
 Const ROTATE_X_MINUS = 0
 Const ROTATE_Y_MINUS = 1

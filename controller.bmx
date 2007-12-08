@@ -34,6 +34,9 @@ Type controller
 	Field intro_messages$[]    'splash messages
 	Field mouse:scr_coord      'last recorded mouse coordinates
 	
+	Field REDRAW_BG            'background validity indicator
+	Field TPixmap:bg_cache     'background texture
+	
 	Field grid:iso_grid        'root-level isometric grid
 	Field cursor:iso_cursor    'root-level isometric cursor
 	Field status:message_nanny 'status message handler
@@ -56,15 +59,15 @@ Type controller
 			"programming and art by $BTyler W.R. Cole", ..
 			"first time? $bpress F1 for help", ..
 			"edit app $cconfiguration $Dwith [$Bisoblox.cfg$D]" ]
-		mouse = scr_coord.create( MouseX(), MouseY() )
-		grid = iso_grid.create(..
-			iso_coord.create( GRID_X, GRID_Y, GRID_Z ))
+		mouse = scr_coord.Create( MouseX(), MouseY() )
+		grid = iso_grid.Create(..
+			iso_coord.Create( GRID_X, GRID_Y, GRID_Z ))
 		cursor = New iso_cursor
 		
-		'CURSOR.BASIC_BLOCK.ISOTYPE = 1
+		REDRAW_BG = True
 		
-		cursor.offset = iso_coord.create( grid.size.x / 2, grid.size.y / 2, 0 )
-		cursor.select_ghost.resize( iso_coord.create( 1, 1, 1 ))
+		cursor.offset = iso_coord.Create( grid.size.x / 2, grid.size.y / 2, 0 )
+		cursor.select_ghost.resize( iso_coord.Create( 1, 1, 1 ))
 		cursor.select_ghost.red   = 180
 		cursor.select_ghost.green = 180
 		cursor.select_ghost.blue  = 240
@@ -169,7 +172,7 @@ Type controller
 		SetAlpha( 0.750 )
 		DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT )
 		
-		Local scr:scr_coord = scr_coord.create( 1, 1 )
+		Local scr:scr_coord = scr_coord.Create( 1, 1 )
 		
 		draw_big_msg( ..
 			"$Bisoblox $bhelp~n"+..
@@ -285,7 +288,7 @@ Type controller
 				(KeyDown( Key_LShift ) Or KeyDown( Key_RShift ) Or KeyDown( Key_LControl ) Or KeyDown( Key_RControl )) ..
 				And ..
 				(KeyDown( Key_A ) Or KeyDown( Key_D ) Or KeyDown( Key_W ) Or KeyDown( Key_S ) Or KeyDown( Key_E ) Or KeyDown( Key_Q ))
-				command_move_cursor( status, grid, cursor, 	iso_coord.create( ..
+				command_move_cursor( status, grid, cursor, 	iso_coord.Create( ..
 					-KeyDown( Key_A )+KeyDown( Key_D ), ..
 					-KeyDown( Key_W )+KeyDown( Key_S ), ..
 					-KeyDown( Key_E )+KeyDown( Key_Q )))

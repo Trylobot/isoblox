@@ -9,6 +9,7 @@ EndRem
 
 Strict
 
+Import "globals.bmx"
 Import "coord.bmx"
 
 Type iso_block
@@ -32,7 +33,7 @@ Type iso_block
 		
 	EndMethod
 	
-	Function create:iso_block( initial_isotype, initial_offset:iso_coord, initial_red, initial_green, initial_blue, initial_alpha# )
+	Function Create:iso_block( initial_isotype, initial_offset:iso_coord, initial_red, initial_green, initial_blue, initial_alpha# )
 		
 		Local new_block:iso_block = New iso_block
 		new_block.offset = initial_offset.copy()
@@ -48,7 +49,7 @@ Type iso_block
 	
 	Method copy:iso_block()
 		
-		Return create( isotype, offset, red, green, blue, alpha )
+		Return Create( isotype, offset, red, green, blue, alpha )
 		
 	EndMethod
 	
@@ -97,7 +98,7 @@ Type iso_block
 	
 	Function invalid:iso_block()
 		
-		Return create( -1, iso_coord.invalid(), -1, -1, -1, -1.000 )
+		Return Create( -1, iso_coord.invalid(), -1, -1, -1, -1.000 )
 		
 	EndFunction
 	
@@ -117,13 +118,14 @@ EndType
 
 Type iso_face
 	
-	Field facetype         'isometric block face type (faces on a cube, 1 of 6)
+	Field face             'face on the unit cube
+	Field facetype         'type of face unit on the face
 	Field offset:iso_coord 'offset from local origin
 	
 	'TODO
 	'OPTIMIZE THIS:
 	'instead of a glass box, imagine a glass wireframe!
-	'will be faster, but take more sprites.
+	'will be faster.
 	'one piece for each of the four corners of each side     (24)
 	'plus one piece for each of the four edges of each sides (24) = (48 total)
 	'this will require more "face types" and such
@@ -136,7 +138,7 @@ Type iso_face
 		
 	EndMethod
 	
-	Function create:iso_face( initial_facetype, initial_offset:iso_coord )
+	Function Create:iso_face( initial_facetype, initial_offset:iso_coord )
 		
 		Local new_face:iso_face = New iso_face
 		new_face.facetype = initial_facetype
@@ -148,12 +150,14 @@ Type iso_face
 	
 	Method copy:iso_face()
 		
-		Return create( facetype, offset.copy() )
+		Return Create( facetype, offset.copy() )
 		
 	EndMethod
 	
 	Method compare( target:Object )
 		
+		'type casting is unfortunately necessary, since the function calling this one
+		'has no knowledge of the iso_face class, and must pass the default Object type.
 		Local other:iso_face = iso_face( target )
 		
 		'difference of the offset layer
@@ -174,40 +178,40 @@ EndType
 
 Function block_to_face_compare( block_A:iso_block, face_B:iso_face )
 	
-	'difference of the offset layer
+	'different layer?
 	Local result = block_A.offset.value() - face_B.offset.value()
 	
-	'tiebreaker (only matters when in the same layer)
+	'different position in the layer?
 	If result = 0
 		
-		'y component tiebreaker (supercedes x and z components)
+		'Y component tiebreaker
 		If block_A.offset.y > face_B.offset.y
 			result :+ 8
 		ElseIf block_A.offset.y < face_B.offset.y
 			result :- 8
 		EndIf
 		
-		'x component tiebreaker (supercedes z component)
+		'X component tiebreaker
 		If block_A.offset.x > face_B.offset.x
 			result :+ 4
 		ElseIf block_A.offset.x < face_B.offset.x
 			result :- 4
 		EndIf
 		
-		'z component tiebreaker (lowest priority)
+		'Z component tiebreaker
 		If block_A.offset.z > face_B.offset.z
 			result :+ 2
 		ElseIf block_A.offset.z < face_B.offset.z
 			result :- 2
 		EndIf
 		
-		'facetype tiebreaker (supercedes any other component)
-		If face_B.facetype > 2 'facetype IN FRONT
+		'behind the block, or in front of it?
+		If face_B.facetype < (COUNT_FACES / 2)
 			result :+ 1
-		Else 'facetype BEHIND
+		Else 'face_B.facetype >= (COUNT_FACES / 2)
 			result :- 1
 		EndIf
-		
+				
 	EndIf
 	
 	Return result

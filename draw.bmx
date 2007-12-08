@@ -92,9 +92,9 @@ Function draw_block_shadows( grid:iso_grid )
 	
 	For iter = EachIn grid.blocklist
 		
-		scr_xy = iso_to_scr( iso_coord.create( iter.offset.x, iter.offset.y, 0 ))
-		scr_yz = iso_to_scr( iso_coord.create( 0, iter.offset.y, iter.offset.z ))
-		scr_xz = iso_to_scr( iso_coord.create( iter.offset.x, 0, iter.offset.z ))
+		scr_xy = iso_to_scr( iso_coord.Create( iter.offset.x, iter.offset.y, 0 ))
+		scr_yz = iso_to_scr( iso_coord.Create( 0, iter.offset.y, iter.offset.z ))
+		scr_xz = iso_to_scr( iso_coord.Create( iter.offset.x, 0, iter.offset.z ))
 		
 		DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, iter.isotype ], scr_xy.x, scr_xy.y )
 		DrawImage( spritelib_blocks[ LIB_SHADOWS_YZ, iter.isotype ], scr_yz.x, scr_yz.y )
@@ -120,9 +120,9 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 		
 		Case CURSOR_BASIC
 			
-			scr_xy = iso_to_scr( iso_coord.create( cursor.offset.x, cursor.offset.y, 0 ))
-			scr_yz = iso_to_scr( iso_coord.create( 0, cursor.offset.y, cursor.offset.z ))
-			scr_xz = iso_to_scr( iso_coord.create( cursor.offset.x, 0, cursor.offset.z ))
+			scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x, cursor.offset.y, 0 ))
+			scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y, cursor.offset.z ))
+			scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x, 0, cursor.offset.z ))
 			SetAlpha( Float( 0.200 ) * ALPHA_BLINK_1 )
 			
 			DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, cursor.basic_block.isotype ], scr_xy.x, scr_xy.y )
@@ -133,9 +133,9 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 			
 			For iter = EachIn cursor.brush_grid.blocklist
 				
-				scr_xy = iso_to_scr( iso_coord.create( cursor.offset.x+iter.offset.x, cursor.offset.y+iter.offset.y, 0 ))
-				scr_yz = iso_to_scr( iso_coord.create( 0, cursor.offset.y+iter.offset.y, cursor.offset.z+iter.offset.z ))
-				scr_xz = iso_to_scr( iso_coord.create( cursor.offset.x+iter.offset.x, 0, cursor.offset.z+iter.offset.z ))
+				scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, cursor.offset.y+iter.offset.y, 0 ))
+				scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y+iter.offset.y, cursor.offset.z+iter.offset.z ))
+				scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, 0, cursor.offset.z+iter.offset.z ))
 				SetAlpha( Float( 0.200 ) * ALPHA_BLINK_1 )
 				
 				DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, iter.isotype ], scr_xy.x, scr_xy.y )
@@ -145,6 +145,8 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 			Next
 			
 		Case CURSOR_SELECT
+			
+			Rem
 		
 			iso = New iso_coord
 			
@@ -171,6 +173,8 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 					DrawImage( spritelib_faces[ FACE_XZ_MINUS, 0 ], scr.x, scr.y )
 				Next
 			Next
+			
+			EndRem
 			
 	EndSelect
 	
