@@ -5,15 +5,20 @@ This is a BlitzMax source file
 Author is Tyler W.R. Cole
 Started on September 30th, 2006
 
-isometric axes layout (x,y,z)
+ isometric axes layout (x,y,z)
 
-   Z      screen axes layout (x,y)
+   Z              screen axes layout (x,y)
    |      
-   o       o__X
-  / \      |  
- Y   X     Y
-
+   o              o__X
+  / \             |  
+ Y   X            Y
 _______________________________
+EndRem
+
+Rem
+TODO
+ - finish/fix the CURSOR_SELECT Case for draw functions:
+   draw_cursor_shadows, draw_cursor, draw_blocks_with_cursor
 EndRem
 
 Strict
@@ -250,6 +255,8 @@ Function draw_cursor( cursor:iso_cursor )
 		
 		Case CURSOR_SELECT
 			
+			Rem
+			
 			cursor.calculate_frame()
 			
 			For f_iter = EachIn cursor.select_ghost.facelist
@@ -261,6 +268,8 @@ Function draw_cursor( cursor:iso_cursor )
 				DrawImage( spritelib_faces[ f_iter.facetype, cursor.frame ], scr.x, scr.y )
 				
 			Next
+			
+			EndRem
 		
 	EndSelect
 	
@@ -375,6 +384,8 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 			
 		Case CURSOR_SELECT
 			
+			Rem
+			
 			g_enum = grid.blocklist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
 			c_enum = cursor.select_ghost.facelist.ObjectEnumerator()
@@ -420,6 +431,8 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 				EndIf
 				
 			EndWhile
+			
+			EndRem
 			
 	EndSelect
 	

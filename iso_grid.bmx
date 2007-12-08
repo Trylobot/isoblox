@@ -9,7 +9,8 @@ EndRem
 
 Rem
 TODO
- - make resize more efficient by analyzing previous size and changing a minimal amount of data
+ - make resize more efficient, by analyzing previous size and changing a minimal amount of data
+ - reconstruct the select_ghost resizing and initializing; it's fuxx0red
 EndRem
 
 Strict
@@ -33,7 +34,7 @@ Type iso_grid
 		
 	EndMethod
 	
-	Function create:iso_grid( initial_size:iso_coord )
+	Function Create:iso_grid( initial_size:iso_coord )
 		
 		'return a blank iso_grid of specified size
 		Local new_grid:iso_grid = New iso_grid
@@ -268,22 +269,22 @@ Type iso_grid
 		
 		bounds = New scr_coord[14]
 		
-		bounds[ 0] = scr_coord.create( -8*size.y, 4*size.y )
-		bounds[ 1] = scr_coord.create( 1, 0 )
-		bounds[ 2] = scr_coord.create( 8, 4 )
-		bounds[ 3] = scr_coord.create( -8*size.y+8*size.x, 4*size.x+4*size.y )
-		bounds[ 4] = scr_coord.create( 8, -4 )
-		bounds[ 5] = scr_coord.create( -8*size.y, -8*size.z+4*size.y )
-		bounds[ 6] = scr_coord.create( 1, -8*size.z )
-		bounds[ 7] = scr_coord.create( 0, 8 )
-		bounds[ 8] = scr_coord.create( 0, -8*size.z )
-		bounds[ 9] = scr_coord.create( 0, 0 )
+		bounds[ 0] = scr_coord.Create( -8*size.y, 4*size.y )
+		bounds[ 1] = scr_coord.Create( 1, 0 )
+		bounds[ 2] = scr_coord.Create( 8, 4 )
+		bounds[ 3] = scr_coord.Create( -8*size.y+8*size.x, 4*size.x+4*size.y )
+		bounds[ 4] = scr_coord.Create( 8, -4 )
+		bounds[ 5] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
+		bounds[ 6] = scr_coord.Create( 1, -8*size.z )
+		bounds[ 7] = scr_coord.Create( 0, 8 )
+		bounds[ 8] = scr_coord.Create( 0, -8*size.z )
+		bounds[ 9] = scr_coord.Create( 0, 0 )
 		'bounds[10] = scr_coord.create( 8*size.x, 4*size.x-8*size.z )
-		bounds[10] = scr_coord.create( 8*size.x+1, 4*size.x-8*size.z )
-		bounds[11] = scr_coord.create( 8*size.x+1, 4*size.x )
-		bounds[12] = scr_coord.create( -8*size.y+8*size.x+1, 4*size.x+4*size.y )
+		bounds[10] = scr_coord.Create( 8*size.x+1, 4*size.x-8*size.z )
+		bounds[11] = scr_coord.Create( 8*size.x+1, 4*size.x )
+		bounds[12] = scr_coord.Create( -8*size.y+8*size.x+1, 4*size.x+4*size.y )
 		'bounds[13] = scr_coord.create( -8*size.y+1, -8*size.z+4*size.y )
-		bounds[13] = scr_coord.create( -8*size.y, -8*size.z+4*size.y )
+		bounds[13] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
 		
 	EndMethod
 	
@@ -305,7 +306,7 @@ Type iso_ghost_grid
 		
 	EndMethod
 	
-	Function create:iso_ghost_grid( initial_size:iso_coord )
+	Function Create:iso_ghost_grid( initial_size:iso_coord )
 		
 		Local new_ghost:iso_ghost_grid = New iso_ghost_grid
 		new_ghost.resize( initial_size )
@@ -327,38 +328,38 @@ Type iso_ghost_grid
 			iso.z = 0
 			For iso.x = 0 To (size.x - 1)
 				For iso.y = 0 To (size.y - 1)				
-					facelist.AddLast( iso_face.create( FACE_XY_MINUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_XY_MINUS, iso ))
 				Next
 			Next
 			iso.x = 0
 			For iso.y = 0 To (size.y - 1)
 				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.create( FACE_YZ_MINUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_YZ_MINUS, iso ))
 				Next
 			Next
 			iso.y = 0
 			For iso.x = 0 To (size.x - 1)
 				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.create( FACE_XZ_MINUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_XZ_MINUS, iso ))
 				Next
 			Next
 			
 			iso.z = (size.z - 1)
 			For iso.x = 0 To (size.x - 1)
 				For iso.y = 0 To (size.y - 1)				
-					facelist.AddLast( iso_face.create( FACE_XY_PLUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_XY_PLUS, iso ))
 				Next
 			Next
 			iso.x = (size.x - 1)
 			For iso.y = 0 To (size.y - 1)
 				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.create( FACE_YZ_PLUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_YZ_PLUS, iso ))
 				Next
 			Next
 			iso.y = (size.y - 1)
 			For iso.x = 0 To (size.x - 1)
 				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.create( FACE_XZ_PLUS, iso ))
+					facelist.AddLast( iso_face.Create( FACE_XZ_PLUS, iso ))
 				Next
 			Next
 			

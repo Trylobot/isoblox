@@ -7,6 +7,11 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+ - finish the calculate_frame function
+EndRem
+
 Strict
 
 Import "globals.bmx"
@@ -18,7 +23,6 @@ Type iso_cursor
 
 	Field mode                        'basic/brush/select/delete selector
 	Field time:TTimer                 'cursor animation timer
-	Field frame                       'animation frame
 	Field offset:iso_coord            'cursor anchor point (shared)
 	Field basic_block:iso_block       'basic mode block
 	Field group                       'geometry group selector
@@ -30,7 +34,6 @@ Type iso_cursor
 		
 		mode = CURSOR_BASIC
 		time = CreateTimer( 8 )
-		frame = 0
 		offset = New iso_coord
 		basic_block = New iso_block
 		group = 0
@@ -42,7 +45,9 @@ Type iso_cursor
 	
 	Method calculate_frame()
 		
-		frame = time.Ticks() Mod COUNT_GHOST_FRAMES
+		'modify the colors of the select_ghost faces with the sine function and the timer
+		'rotate each face through black -> white -> black
+		
 		
 	EndMethod
 	

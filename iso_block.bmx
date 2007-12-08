@@ -187,33 +187,41 @@ Function block_to_face_compare( block_A:iso_block, face_B:iso_face )
 		'Y component tiebreaker
 		If block_A.offset.y > face_B.offset.y
 			result :+ 8
+			Return result
 		ElseIf block_A.offset.y < face_B.offset.y
 			result :- 8
+			Return result
 		EndIf
 		
 		'X component tiebreaker
 		If block_A.offset.x > face_B.offset.x
 			result :+ 4
+			Return result
 		ElseIf block_A.offset.x < face_B.offset.x
 			result :- 4
+			Return result
 		EndIf
 		
 		'Z component tiebreaker
 		If block_A.offset.z > face_B.offset.z
 			result :+ 2
+			Return result
 		ElseIf block_A.offset.z < face_B.offset.z
 			result :- 2
+			Return result
 		EndIf
 		
 		'behind the block, or in front of it?
 		If face_B.facetype < (COUNT_FACES / 2)
 			result :+ 1
+			Return result
 		Else 'face_B.facetype >= (COUNT_FACES / 2)
 			result :- 1
+			Return result
 		EndIf
 				
 	EndIf
 	
 	Return result
-		
+	
 EndFunction
