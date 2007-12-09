@@ -319,6 +319,8 @@ Type iso_ghost_grid
 			
 			Local iso:iso_coord = New iso_coord
 			
+			Rem
+			
 			iso.z = 0
 			For iso.x = 0 To (size.x - 1)
 				For iso.y = 0 To (size.y - 1)				
@@ -358,6 +360,8 @@ Type iso_ghost_grid
 			Next
 			
 			facelist.Sort()
+			
+			EndRem
 			
 		EndIf
 		

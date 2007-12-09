@@ -148,7 +148,7 @@ Type iso_face
 	
 	Method copy:iso_face()
 		
-		Return Create( facetype, offset.copy() )
+		Return Create( face, facetype, offset.copy() )
 		
 	EndMethod
 	

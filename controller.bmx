@@ -72,10 +72,6 @@ Type controller
 		
 		cursor.offset = iso_coord.Create( grid.size.x / 2, grid.size.y / 2, 0 )
 		cursor.select_ghost.resize( iso_coord.Create( 1, 1, 1 ))
-		cursor.select_ghost.red   = 180
-		cursor.select_ghost.green = 180
-		cursor.select_ghost.blue  = 240
-		cursor.select_ghost.alpha = 0.450
 		status = New message_nanny
 		
 		SHOW_SHADOWS         = True
