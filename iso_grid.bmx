@@ -289,9 +289,9 @@ EndType
 
 Type iso_ghost_grid
 	
-	Field size:iso_coord 'dimensions of grid
-	Field facelist:TList 'list of [iso_face] objects
-	Field 
+	Field size:iso_coord      'dimensions of grid
+	Field facelist:TList      'list of [iso_face] objects
+	Field agents:iso_coord[6] 'agents for procedural facelist generation
 	
 	Method New()
 		

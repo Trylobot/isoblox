@@ -176,50 +176,42 @@ EndType
 
 Function block_to_face_compare( block_A:iso_block, face_B:iso_face )
 	
-	'different layer?
-	Local result = block_A.offset.value() - face_B.offset.value()
+	Local layer_difference = block_A.offset.value() - face_B.offset.value()
 	
-	'different position in the layer?
-	If result = 0
+	If layer_difference <> 0 'different layer, easiest and most common
+		Return layer_difference
+	Else 'same layer
+	
+		'The order of these checks is important, and is based on a graphical kludge that resulted
+		'from the particular style of isometric pixel art I used in my block sprites.
 		
-		'Y component tiebreaker
+		'different Y-component?
 		If block_A.offset.y > face_B.offset.y
-			result :+ 8
-			Return result
+			Return 1
 		ElseIf block_A.offset.y < face_B.offset.y
-			result :- 8
-			Return result
+			Return -1
 		EndIf
 		
-		'X component tiebreaker
+		'different X-component?
 		If block_A.offset.x > face_B.offset.x
-			result :+ 4
-			Return result
+			Return 1
 		ElseIf block_A.offset.x < face_B.offset.x
-			result :- 4
-			Return result
+			Return -1
 		EndIf
 		
-		'Z component tiebreaker
+		'different Z-component?
 		If block_A.offset.z > face_B.offset.z
-			result :+ 2
-			Return result
+			Return 1
 		ElseIf block_A.offset.z < face_B.offset.z
-			result :- 2
-			Return result
+			Return -1
 		EndIf
 		
-		'behind the block, or in front of it?
+		'face is behind the block, or in front of it?
 		If face_B.facetype < (COUNT_FACES / 2)
-			result :+ 1
-			Return result
+			Return 1
 		Else 'face_B.facetype >= (COUNT_FACES / 2)
-			result :- 1
-			Return result
+			Return -1
 		EndIf
-				
+		
 	EndIf
-	
-	Return result
-	
 EndFunction
