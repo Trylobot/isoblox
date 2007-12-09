@@ -25,7 +25,7 @@ Type iso_grid
 	Field size:iso_coord     'dimensions of grid
 	Field blocklist:TList    'list of [iso_block] objects
 	Field filled:Int[,,]     'array of booleans, indicates status of entire grid
-	Field bounds:scr_coord[] 'array of screen coordinates, for rendering optimization
+	Field bounds:scr_coord[] 'array of screen coordinates, rendering kludge
 	
 	Method New()
 		
@@ -162,17 +162,13 @@ Type iso_grid
 	
 	Method in_bounds( target:iso_coord )
 		
-		If ..
-		target.x >= 0 And ..
-		target.y >= 0 And ..
-		target.z >= 0 And ..
-		target.x < size.x And ..
-		target.y < size.y And ..
-		target.z < size.z
-			Return True
-		Else
-			Return False
-		EndIf
+		Return ..
+			target.x >= 0 And ..
+			target.y >= 0 And ..
+			target.z >= 0 And ..
+			target.x < size.x And ..
+			target.y < size.y And ..
+			target.z < size.z
 		
 	EndMethod
 	
@@ -295,6 +291,7 @@ Type iso_ghost_grid
 	
 	Field size:iso_coord 'dimensions of grid
 	Field facelist:TList 'list of [iso_face] objects
+	Field 
 	
 	Method New()
 		

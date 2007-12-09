@@ -43,7 +43,7 @@ Function fileman_load_art()
 	For Local face_library = 0 To (COUNT_FACE_LIBS - 1)
 		For Local facetype = 0 To (COUNT_FACES - 1)
 			
-			spritelib_faces[ face_library, facetype ] = LoadImage( spritelib_faces_map.Window( face_library * COUNT_FACE_LIBS * 23 + facetype * 23, 0, 23, 23 ))
+			spritelib_faces[ face_library, facetype ] = LoadImage( spritelib_faces_map.Window( facetype * 23, face_library * 23, 23, 23 ))
 			SetImageHandle( spritelib_faces[ face_library, facetype ], 11, 11 )
 			
 		Next
