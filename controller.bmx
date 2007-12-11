@@ -9,6 +9,11 @@ EndRem
 
 Rem
 TODO
+ - when adding or deleting blocks or bunches of blocks at once, play one sound and
+   only on confirmed success of the entire operation, using a return code from iso_grid methods
+ - allow the "hold down & place constantly" operation again
+ - create a method using the mouse that a rectangular area can be defined, as a copy of a single block,
+   and then created all at once (simcity style, in other words)
  - cache the background line grid and only redraw on resize
  - cleanup the keyboard_input function. it is currently creating status messages
    and executing commands, but it should only be calling commands in the command
