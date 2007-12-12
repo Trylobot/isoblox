@@ -9,6 +9,10 @@ EndRem
 
 Rem
 TODO
+ - map 2D screen coordinates to 3D rays originating at the "camera" (which is infinitely far away,
+   but since the screen is orthoganal, no distortion is present) by narrowing down each coordinate
+   individually (i.e., find the set of possible X & Y by dividing up the screen into columns, each
+   as wide as a single sprite, and then taking what's left and narrowing further using the other axes).
  - when adding or deleting blocks or bunches of blocks at once, play one sound and
    only on confirmed success of the entire operation, using a return code from iso_grid methods
  - allow the "hold down & place constantly" operation again
