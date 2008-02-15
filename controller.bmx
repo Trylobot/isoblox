@@ -131,11 +131,11 @@ Type controller
 
 		SetOrigin( ORIGIN_X, ORIGIN_Y )
 		
-		t = cursor_blink_timer.Ticks()
+		Local t = cursor_blink_timer.Ticks()
 		ALPHA_BLINK_1 = 0.25 * Sin(t) + 0.75
 		ALPHA_BLINK_2 = -0.25 * Sin(t) + 0.50
 		For Local phase_modulator = 0 To 5
-			SELECTION_ALPHA_BLINK[phase_modulator] = Sin(x - phase_modulator * (2 * Pi/6))
+			'SELECTION_ALPHA_BLINK[phase_modulator] = Sin(x - phase_modulator * (2 * Pi/6))
 		Next
 
 		If SHOW_GRIDLINES

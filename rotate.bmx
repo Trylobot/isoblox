@@ -136,7 +136,7 @@ Function rotate_about_anchor( operation, anchor:iso_coord, blocklist:TList )
 	
 	'apply translation to entire grid
 	'translation amount is unknown until all translations have been made
-	Local delta:iso_coord = blocklist.First()
+	Local delta:iso_coord = iso_coord(blocklist.First())
 	For curr_block = EachIn blocklist
 		
 		curr_block.offset = curr_block.offset.sub( delta )
