@@ -94,33 +94,54 @@ EndFunction
 
 Function rotate_about_anchor( operation, anchor:iso_coord, blocklist:TList )
 	
-	Select operation
+	'rotates a given list of isoblocks "blocklist", 90 degrees in the direction specifed
+	'by "operation" about an anchor coordinate "anchor"
+	
+	'apply rotation operation to each block in the list
+	Local curr_block:iso_block
+	For curr_block = EachIn blocklist
 		
-		Case ROTATE_X_MINUS
-			
-			
-			
-		Case ROTATE_Y_MINUS
-			
-			
-			
-		Case ROTATE_Z_MINUS
-			
-			
-			
-		Case ROTATE_X_PLUS
-			
-			
-			
-		Case ROTATE_Y_PLUS
-			
-			
-			
-		Case ROTATE_Z_PLUS
-			
-			
+		'apply rotation to image
+		curr_block.isotype = rotate( operation, curr_block.isotype )
 		
-	EndSelect
+		'apply rotation to coordinates
+		curr_block.offset = curr_block.offset.sub( anchor )
+		Local new_offset:iso_coord = curr_block.offset.copy()
+		Select operation
+			Case ROTATE_X_MINUS
+				new_offset.y = -curr_block.offset.z
+				new_offset.z =  curr_block.offset.y
+			Case ROTATE_Y_MINUS
+				new_offset.x = -curr_block.offset.z
+				new_offset.z =  curr_block.offset.x
+			Case ROTATE_Z_MINUS
+				new_offset.x = -curr_block.offset.y
+				new_offset.y =  curr_block.offset.x
+			Case ROTATE_X_PLUS
+				new_offset.y =  curr_block.offset.z
+				new_offset.z = -curr_block.offset.y
+			Case ROTATE_Y_PLUS
+				new_offset.x =  curr_block.offset.z
+				new_offset.z = -curr_block.offset.x
+			Case ROTATE_Z_PLUS
+				new_offset.x =  curr_block.offset.y
+				new_offset.y = -curr_block.offset.x
+		EndSelect
+		curr_block.offset = new_offset.add( anchor )
+		
+	Next
+	
+	'sort grid
+	blocklist.Sort()
+	
+	'apply translation to entire grid
+	'translation amount is unknown until all translations have been made
+	Local delta:iso_coord = <<< First item of blocklist >>>
+	For curr_block = EachIn blocklist
+		
+		curr_block.offset = curr_block.offset.sub( delta )
+		
+	Next
 	
 EndFunction
 
@@ -354,4 +375,5 @@ Function map_set_literal_definitions()
 	rotation_map[ ROTATE_Z_MINUS, 68 ] = 66
 	
 EndFunction
+
 
