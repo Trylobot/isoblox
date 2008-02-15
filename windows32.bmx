@@ -15,7 +15,7 @@ Import pub.win32
 Const ICON_BIG = 1
 Extern "win32"
 	Function FindWindowA(lpClassName$z, lpWindowName$z)
-End Extern
+EndExtern
 Global hWnd
 Function set_window(GWLStyleFlags=0)	
 	If TGLMax2DDriver(_max2ddriver)
@@ -25,7 +25,7 @@ Function set_window(GWLStyleFlags=0)
 	EndIf	
 	SetWindowLongA(hWnd, GWL_STYLE, GetWindowLongA(hWnd, GWL_STYLE) | GWLStyleFlags)
 	SendMessageA(hWnd, WM_SETICON, ICON_BIG, LoadIconA(GetModuleHandleA(Null), Byte Ptr(101)))
-End Function
+EndFunction
 Function close_message()
 	Local msg:Byte Ptr
 	GetMessageA( msg,hWnd,WM_CLOSE,WM_CLOSE )
