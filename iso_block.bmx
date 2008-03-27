@@ -55,32 +55,32 @@ Type iso_block
 	
 	Method compare( target:Object )
 		
-		Local other:iso_block = iso_block( target )
+		Local other_offset:iso_coord = iso_block( target ).offset
 		
 		'difference of the offset layer
-		Local result = offset.value() - other.offset.value()
+		Local result = offset.value() - other_offset.value()
 		
 		'tiebreaker (only matters when in the same layer)
 		If result = 0
 			
 			'y component tiebreaker (supercedes x and z components)
-			If offset.y > other.offset.y
+			If offset.y > other_offset.y
 				result :+ 4
-			ElseIf offset.y < other.offset.y
+			ElseIf offset.y < other_offset.y
 				result :- 4
 			EndIf
 			
 			'x component tiebreaker (supercedes z component)
-			If offset.x > other.offset.x
+			If offset.x > other_offset.x
 				result :+ 2
-			ElseIf offset.x < other.offset.x
+			ElseIf offset.x < other_offset.x
 				result :- 2
 			EndIf
 			
 			'z component tiebreaker (lowest priority)
-			If offset.z > other.offset.z
+			If offset.z > other_offset.z
 				result :+ 1
-			ElseIf offset.z < other.offset.z
+			ElseIf offset.z < other_offset.z
 				result :- 1
 			EndIf
 			

@@ -115,5 +115,15 @@ Type iso_coord
 		Return x < 0 Or y < 0 Or z < 0
 	EndMethod
 		
+	Method in_bounds( size:iso_coord )
+		Return ..
+			x >= 0 And ..
+			y >= 0 And ..
+			z >= 0 And ..
+			x < size.x And ..
+			y < size.y And ..
+			z < size.z
+	EndMethod
+	
 EndType
 

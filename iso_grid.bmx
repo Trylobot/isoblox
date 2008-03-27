@@ -20,31 +20,135 @@ Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"
 
+Rem
+	2008-03-26
+	I've decided to use a different internal data structure setup. Instead of using a list to hold
+	the important data, I will instead use a 3D array. A list will still be maintained for efficient
+	rendering. The following operations will be affected:
+	Insert - linear with the total number of blocks (but would like it to be constant time)
+	Delete - linear with the total number of blocks (but would like it to be constant time)
+	Merge grids (paste) - linear with the total number of blocks (between both the grids)
+	Resize - linear with the total number of blocks
+	Rendering - linear with the total number of blocks
+EndRem
 Type iso_grid
 	
 	Field size:iso_coord     'dimensions of grid
-	Field blocklist:TList    'list of [iso_block] objects
-	Field filled:Int[,,]     'array of booleans, indicates status of entire grid
-	Field bounds:scr_coord[] 'array of screen coordinates, rendering kludge
+	'NEW FIELDS
+	Field grid:iso_block[,,] '3D array of [iso_block] objects
+	Field filled:Int[,,]     'one flag for each position of the grid, indicating its fill status
+	Field renderlist:TList   'list of all [iso_block] objects from grid in render-order
+	Field backref:TLink[,,]  '3D array of references to renderlist items. Starts with all NULL references.
+	Field block_count        'total number of filled positions in the grid
+	'OLD FIELDS
+	'Field blocklist:TList    'list of [iso_block] objects
+	'Field bounds:scr_coord[] 'array of screen coordinates, rendering kludge
 	
 	Method New()
-		
-		'reserve memory for an iso_grid of smallest size
-		size = New iso_coord
-		blocklist = CreateList()
-		
+		'reserve smallest amount of memory possible for a new iso_grid object
+		size = iso_coord.create( 1, 1, 1 )
+		filled = New Int[ 1, 1, 1 ]
+		grid = New iso_block[ 1, 1, 1 ]
+		renderlist = New TList
+		backref = New TLink[ 1, 1, 1 ]
+		block_count = 0
 	EndMethod
 	
-	Function Create:iso_grid( initial_size:iso_coord )
-		
-		'return a blank iso_grid of specified size
+	Function create:iso_grid( initial_size:iso_coord )
+		'return a new, blank iso_grid of given initial size
 		Local new_grid:iso_grid = New iso_grid
 		new_grid.resize( initial_size )
-
 		Return new_grid
-		
 	EndFunction
 	
+	'retrieval methods (specific to this object)
+	Method grid_at:iso_block( v:iso_coord )
+		Return grid[ v.x, v.y, v.z ]
+	EndMethod
+	Method filled_at:Int( v:iso_coord )
+		Return filled[ v.x, v.y, v.z ]
+	EndMethod
+	Method backref_at:TLink( v:iso_coord )
+		Return backref[ v.x, v.y, v.z ]
+	EndMethod
+	
+	'retrieval functions (generalized)
+	Function grid_at_in:iso_block( grid:iso_block[,,], v:iso_coord )
+		Return grid[ v.x, v.y, v.z ]
+	EndFunction 
+	Function filled_at_in:Int( filled:Int[,,], v:iso_coord )
+		Return filled[ v.x, v.y, v.z ]
+	EndFunction 
+	Function backref_at_in:TLink( backref:TLink[,,], v:iso_coord )
+		Return backref[ v.x, v.y, v.z ]
+	EndFunction 
+		
+	Rem
+		2008-03-26
+		since this operation is now quadratic with the block count instead of constant,
+		I've decided to disable auto-incremental-resize. Instead, the user will
+		manually resize the grid, much like with 2D paint programs.
+	EndRem
+	Method resize( new_size:iso_coord )
+		If Not new_size.is_invalid()
+			
+			'reserve space for new data
+			size = new_size.copy()
+			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
+			Local new_grid:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
+			Local new_renderlist:TList = New TList
+			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+			
+			'make one pass through the old renderlist
+			For Local iter:iso_block = EachIn renderlist
+				If iter.offset.in_bounds( size )
+					'this item should be kept; stick it in the new data
+					filled_at_in( new_filled, iter.offset ) = True
+					grid_at_in( new_grid, iter.offset ) = grid_at( iter.offset )
+					backref_at_in( new_backref, iter.offset ) = ..
+						new_renderlist.AddLast( iter )
+				Else
+					'block falls outside the new boundary; decrement block count
+					blockcount :- 1
+				EndIf
+			Next
+			
+			'point to the new data
+			filled = new_filled
+			grid = new_grid
+			'no need to sort the renderlist; it's already been sorted
+			renderlist = new_renderlist
+			backref = new_backref
+			
+		EndIf
+	EndMethod
+	
+	Method insert( location:iso_coord, block:iso_block )
+		If location.in_bounds( size )
+			filled_at( location ) = True
+			grid_at( location ) = block.copy()
+			backref_at( location ) = renderlist_insert( grid_at( location ))
+			'sort the renderlist
+			renderlist.Sort()
+		EndIf
+	EndMethod
+	Method renderlist_insert:TLink( value:iso_block )
+		'trivial case; renderlist is empty
+		If renderlist.IsEmpty()
+			Return renderlist.AddFirst( value )
+		EndIf
+		
+		Local cursor:TLink = renderlist.FirstLink()
+		'initial check in case the value should be inserted at the head of the list
+		'note; this will not cause a crash if renderlist has only one element.
+		'this is because TList is a cyclic doubly-linked list.
+		'if there's only one element, 
+		If cursor.offset.value.compare( cursor.NextLink().offset.value ) < 0
+			renderlist.InsertBeforeLink( value, cursor )
+		EndIf
+	EndMethod
+	
+	Rem
 	Method resize( new_size:iso_coord )
 	
 		If new_size.x > 0 And new_size.y > 0 And new_size.z > 0
@@ -54,23 +158,6 @@ Type iso_grid
 			
 		EndIf
 		
-	EndMethod
-	
-	Method set( new_size:iso_coord, new_list:TList )
-		
-		If new_list.isEmpty()
-			
-			resize( new_size )
-			
-		ElseIf new_size.x > 0 And new_size.y > 0 And new_size.z > 0
-			
-			size = new_size.copy()
-			blocklist = new_list
-			blocklist.Sort()
-			maintain_data_structures()
-			
-		EndIf
-						
 	EndMethod
 	
 	Method maintain_data_structures()
@@ -90,6 +177,23 @@ Type iso_grid
 			
 		Next
 		
+	EndMethod
+	
+	Method set( new_size:iso_coord, new_list:TList )
+		
+		If new_list.isEmpty()
+			
+			resize( new_size )
+			
+		ElseIf new_size.x > 0 And new_size.y > 0 And new_size.z > 0
+			
+			size = new_size.copy()
+			blocklist = new_list
+			blocklist.Sort()
+			maintain_data_structures()
+			
+		EndIf
+						
 	EndMethod
 	
 	Method reduce_to_contents()
@@ -157,18 +261,6 @@ Type iso_grid
 	Method clear_target( target:iso_coord )
 		
 		If in_bounds( target ) Then filled[ target.x,target.y, target.z ] = False
-		
-	EndMethod
-	
-	Method in_bounds( target:iso_coord )
-		
-		Return ..
-			target.x >= 0 And ..
-			target.y >= 0 And ..
-			target.z >= 0 And ..
-			target.x < size.x And ..
-			target.y < size.y And ..
-			target.z < size.z
 		
 	EndMethod
 	
@@ -284,6 +376,8 @@ Type iso_grid
 		bounds[13] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
 		
 	EndMethod
+	
+	EndRem
 	
 EndType
 
