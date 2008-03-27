@@ -53,6 +53,17 @@ Type iso_block
 		
 	EndMethod
 	
+	Method clone( source:iso_block )
+		
+		offset = source.offset.copy()
+		isotype = source.isotype
+		red = source.red
+		green = source.green
+		blue = source.blue
+		alpha = source.alpha
+		
+	EndMethod
+	
 	Method compare( target:Object )
 		
 		Local other_offset:iso_coord = iso_block( target ).offset

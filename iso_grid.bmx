@@ -21,7 +21,7 @@ Import "coord.bmx"
 Import "iso_block.bmx"
 
 Rem
-	2008-03-26
+	March 26th, 2008
 	I've decided to use a different internal data structure setup. Instead of using a list to hold
 	the important data, I will instead use a 3D array. A list will still be maintained for efficient
 	rendering. The following operations will be affected:
@@ -84,7 +84,7 @@ Type iso_grid
 	EndFunction 
 		
 	Rem
-		2008-03-26
+	Resize
 		since this operation is now quadratic with the block count instead of constant,
 		I've decided to disable auto-incremental-resize. Instead, the user will
 		manually resize the grid, much like with 2D paint programs.
@@ -108,7 +108,7 @@ Type iso_grid
 					backref_at_in( new_backref, iter.offset ) = ..
 						new_renderlist.AddLast( iter )
 				Else
-					'block falls outside the new boundary; decrement block count
+					'block falls outside the new boundary; equivalent to being deleted
 					blockcount :- 1
 				EndIf
 			Next
@@ -128,57 +128,71 @@ Type iso_grid
 			filled_at( location ) = True
 			grid_at( location ) = block.copy()
 			backref_at( location ) = renderlist_insert( grid_at( location ))
-			'sort the renderlist
-			renderlist.Sort()
+			blockcount :+ 1
+		Else
+			'do nothing
 		EndIf
 	EndMethod
+	Rem
+	RenderList_Insert
+		this is really an "upsert" in that it can either insert a new value, or update (replace) an old value with the same key
+	EndRem
 	Method renderlist_insert:TLink( value:iso_block )
-		'trivial case; renderlist is empty
+		'trivial, empty list case
 		If renderlist.IsEmpty()
 			Return renderlist.AddFirst( value )
-		EndIf
-		
+		EndIf		
+		'check in case the value should be inserted at the head of the list
 		Local cursor:TLink = renderlist.FirstLink()
-		'initial check in case the value should be inserted at the head of the list
-		'note; this will not cause a crash if renderlist has only one element.
-		'this is because TList is a cyclic doubly-linked list.
-		'if there's only one element, 
 		If cursor.offset.value.compare( cursor.NextLink().offset.value ) < 0
-			renderlist.InsertBeforeLink( value, cursor )
+			'even if the list has only one element, this logic works.
+			'TList is a cyclic doubly-linked list; thus, <TList>._head._pred == <TList>._head
+			Return renderlist.InsertBeforeLink( value, cursor )
 		EndIf
+		'loop through the whole renderlist
+		For counter = 1 to block_count
+			If cursor.offset.value.compare( cursor.NextLink().offset.value ) > 0
+				'if the value to be inserted should come "on top of"/after the cursor link, insert it there
+				Return renderlist.InsertAfterLink( value, cursor )
+			ElseIf cursor.offset.value.compare( cursor.NextLink().offset.value ) = 0
+				'or, if the value to be inserted has the same location as the cursor, update (replace) it
+				cursor.value.clone( value )
+				Return cursor
+			EndIf
+			'advance the cursor
+			cursor = cursor.NextLink()
+		Next
 	EndMethod
 	
 	Rem
-	Method resize( new_size:iso_coord )
-	
-		If new_size.x > 0 And new_size.y > 0 And new_size.z > 0
-			
-			size = new_size.copy()			
-			maintain_data_structures()
-			
-		EndIf
+	Reduce to Contents
+		This method 
+	EndRem
+	Method reduce_to_contents()
 		
-	EndMethod
-	
-	Method maintain_data_structures()
-		
-		calculate_bounds()
-
-		filled = New Int[ size.x, size.y, size.z ]
-		
+		Local new_offset:iso_coord = iso_coord.invalid()
+		Local new_size:iso_coord = iso_coord.invalid()
 		Local iter:iso_block
+		
 		For iter = EachIn blocklist
-			
-			If (Not in_bounds( iter.offset )) Or is_filled( iter.offset )					
-				erase_at_offset( iter.offset )					
-			Else
-				fill_target( iter.offset )
-			EndIf
-			
+			If new_offset.x = -1 Or new_offset.x > iter.offset.x Then new_offset.x = iter.offset.x
+			If new_offset.y = -1 Or new_offset.y > iter.offset.y Then new_offset.y = iter.offset.y
+			If new_offset.z = -1 Or new_offset.z > iter.offset.z Then new_offset.z = iter.offset.z
+		Next
+		For iter = EachIn blocklist
+			iter.offset = iter.offset.sub( new_offset )
 		Next
 		
+		For iter = EachIn blocklist
+			If new_size.x <= iter.offset.x Then new_size.x = iter.offset.x + 1
+			If new_size.y <= iter.offset.y Then new_size.y = iter.offset.y + 1
+			If new_size.z <= iter.offset.z Then new_size.z = iter.offset.z + 1
+		Next
+		resize( new_size )
+		
 	EndMethod
 	
+	Rem
 	Method set( new_size:iso_coord, new_list:TList )
 		
 		If new_list.isEmpty()
@@ -351,6 +365,25 @@ Type iso_grid
 		Next
 		
 		Return s
+		
+	EndMethod
+	
+	Method maintain_data_structures()
+		
+		calculate_bounds()
+
+		filled = New Int[ size.x, size.y, size.z ]
+		
+		Local iter:iso_block
+		For iter = EachIn blocklist
+			
+			If (Not in_bounds( iter.offset )) Or is_filled( iter.offset )					
+				erase_at_offset( iter.offset )					
+			Else
+				fill_target( iter.offset )
+			EndIf
+			
+		Next
 		
 	EndMethod
 	
