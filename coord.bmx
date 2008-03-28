@@ -25,6 +25,8 @@ Function scr_to_iso:iso_coord( scr:scr_coord )
 
 EndFunction
 
+
+
 Type scr_coord
 	
 	Field x, y
@@ -64,6 +66,8 @@ Type scr_coord
 	EndMethod
 		
 EndType
+
+
 
 Type iso_coord
 	

@@ -41,23 +41,16 @@ Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor 
 	If SOUND Then PlaySound( high_click )
 	
 	Select cursor.mode
-	
+		
 		Case CURSOR_BASIC
-	
+			
 			Local new_block:iso_block = cursor.basic_block.copy()
 			new_block.offset = cursor.offset.copy()
-			grid.insert_new_block( new_block )
+			grid.insert( new_block )
 			
 		Case CURSOR_BRUSH
 			
-			Local new_block:iso_block
-			Local iter:iso_block
-			
-			For iter = EachIn cursor.brush_grid.blocklist
-				new_block = iter.copy()
-				new_block.offset = cursor.offset.add( iter.offset )
-				grid.insert_new_block( new_block )
-			Next
+			grid.insert_subgrid( cursor.brush_grid )
 			
 	EndSelect
 

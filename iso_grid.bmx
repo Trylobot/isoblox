@@ -35,7 +35,7 @@ Type iso_grid
 	
 	Field size:iso_coord     'dimensions of grid
 	'NEW FIELDS
-	Field grid:iso_block[,,] '3D array of [iso_block] objects
+	Field space:iso_block[,,] '3D array of [iso_block] objects
 	Field filled:Int[,,]     'one flag for each position of the grid, indicating its fill status
 	Field renderlist:TList   'list of all [iso_block] objects from grid in render-order
 	Field backref:TLink[,,]  '3D array of references to renderlist items. Starts with all NULL references.
@@ -48,7 +48,7 @@ Type iso_grid
 		'reserve smallest amount of memory possible for a new iso_grid object
 		size = iso_coord.create( 1, 1, 1 )
 		filled = New Int[ 1, 1, 1 ]
-		grid = New iso_block[ 1, 1, 1 ]
+		space = New iso_block[ 1, 1, 1 ]
 		renderlist = New TList
 		backref = New TLink[ 1, 1, 1 ]
 		block_count = 0
@@ -56,14 +56,14 @@ Type iso_grid
 	
 	Function create:iso_grid( initial_size:iso_coord )
 		'return a new, blank iso_grid of given initial size
-		Local new_grid:iso_grid = New iso_grid
-		new_grid.resize( initial_size )
-		Return new_grid
+		Local new_space:iso_grid = New iso_grid
+		new_space.resize( initial_size )
+		Return new_space
 	EndFunction
 	
 	'retrieval methods (specific to this object)
-	Method grid_at:iso_block( v:iso_coord )
-		Return grid[ v.x, v.y, v.z ]
+	Method space_at:iso_block( v:iso_coord )
+		Return space[ v.x, v.y, v.z ]
 	EndMethod
 	Method filled_at:Int( v:iso_coord )
 		Return filled[ v.x, v.y, v.z ]
@@ -73,8 +73,8 @@ Type iso_grid
 	EndMethod
 	
 	'retrieval functions (generalized)
-	Function grid_at_in:iso_block( grid:iso_block[,,], v:iso_coord )
-		Return grid[ v.x, v.y, v.z ]
+	Function space_at_in:iso_block( space:iso_block[,,], v:iso_coord )
+		Return space[ v.x, v.y, v.z ]
 	EndFunction 
 	Function filled_at_in:Int( filled:Int[,,], v:iso_coord )
 		Return filled[ v.x, v.y, v.z ]
@@ -84,7 +84,7 @@ Type iso_grid
 	EndFunction 
 		
 	Rem
-	Resize
+		Resize
 		since this operation is now quadratic with the block count instead of constant,
 		I've decided to disable auto-incremental-resize. Instead, the user will
 		manually resize the grid, much like with 2D paint programs.
@@ -95,7 +95,7 @@ Type iso_grid
 			'reserve space for new data
 			size = new_size.copy()
 			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
-			Local new_grid:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
+			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
 			Local new_renderlist:TList = New TList
 			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
 			
@@ -104,93 +104,93 @@ Type iso_grid
 				If iter.offset.in_bounds( size )
 					'this item should be kept; stick it in the new data
 					filled_at_in( new_filled, iter.offset ) = True
-					grid_at_in( new_grid, iter.offset ) = grid_at( iter.offset )
+					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
 					backref_at_in( new_backref, iter.offset ) = ..
 						new_renderlist.AddLast( iter )
 				Else
 					'block falls outside the new boundary; equivalent to being deleted
-					blockcount :- 1
+					block_count :- 1
 				EndIf
 			Next
 			
 			'point to the new data
 			filled = new_filled
-			grid = new_grid
-			'no need to sort the renderlist; it's already been sorted
+			space = new_space
 			renderlist = new_renderlist
 			backref = new_backref
 			
 		EndIf
 	EndMethod
 	
-	Method insert( location:iso_coord, block:iso_block )
-		If location.in_bounds( size )
-			If Not filled_at( location )
-				blockcount :+ 1
-			EndIf
-			filled_at( location ) = True
-			grid_at( location ) = block.copy()
-			backref_at( location ) = renderlist_insert( grid_at( location ))
-		Else
-			'do nothing
-		EndIf
-	EndMethod
 	Rem
-	RenderList_Insert
-		this is really an "upsert" in that it can either insert a new value, or update (replace) an old value with the same key
+		RenderList_Insert
+		this is really an "upsert" in that it can either insert a new value,
+		or update (replace) an old value with the same key.
+		also maintains the sort-order of the renderlist
 	EndRem
-	Method renderlist_insert:TLink( value:iso_block )
+	Method renderlist_insert:TLink( new_block:iso_block )
+		
 		'trivial, empty list case
 		If renderlist.IsEmpty()
-			Return renderlist.AddFirst( value )
+			Return renderlist.AddFirst( new_block )
 		EndIf		
+		
 		'check in case the value should be inserted at the head of the list
 		Local cursor:TLink = renderlist.FirstLink()
-		If cursor.offset.value.compare( cursor.NextLink().offset.value ) < 0
+		Local cmp = 0
+		cmp = cursor.compare( new_block )
+		If cmp < 0
 			'even if the list has only one element, this logic works.
 			'TList is a cyclic doubly-linked list; thus, <TList>._head._pred == <TList>._head
-			Return renderlist.InsertBeforeLink( value, cursor )
+			Return renderlist.InsertBeforeLink( new_block, cursor )
 		EndIf
+		
 		'loop through the whole renderlist
-		For counter = 1 to block_count
-			If cursor.offset.value.compare( cursor.NextLink().offset.value ) > 0
+		For counter = 0 to block_count - 1
+			If cmp > 0
 				'if the value to be inserted should come "on top of"/after the cursor link, insert it there
-				Return renderlist.InsertAfterLink( value, cursor )
-			ElseIf cursor.offset.value.compare( cursor.NextLink().offset.value ) = 0
+				Return renderlist.InsertAfterLink( new_block, cursor )
+			ElseIf cmp = 0
 				'or, if the value to be inserted has the same location as the cursor, update (replace) it
 				cursor.value.clone( value )
 				Return cursor
 			EndIf
 			'advance the cursor
 			cursor = cursor.NextLink()
+			cmp = cursor.compare( new_block )
 		Next
+		
 	EndMethod
-	
 	Rem
-	Reduce to Contents
-		This method 
+		Insert
+		1. Should this method have a selector for over-write?
+		will insert a new block at a location, or over-write existing.
+		the location is provided inside the object.
 	EndRem
-	Method reduce_to_contents()
+	Method insert( new_block:iso_block )
 		
-		Local new_offset:iso_coord = iso_coord.invalid()
-		Local new_size:iso_coord = iso_coord.invalid()
-		Local iter:iso_block
+		If new_block.offset.in_bounds( size )
+			
+			If Not filled_at( new_block.offset )
+				block_count :+ 1
+			EndIf
+			
+			filled_at( new_block.offset ) = True
+			space_at( new_block.offset ) = new_block.copy()
+			backref_at( new_block.offset ) = renderlist_insert( space_at( location ))
+			
+		EndIf
 		
-		For iter = EachIn blocklist
-			If new_offset.x = -1 Or new_offset.x > iter.offset.x Then new_offset.x = iter.offset.x
-			If new_offset.y = -1 Or new_offset.y > iter.offset.y Then new_offset.y = iter.offset.y
-			If new_offset.z = -1 Or new_offset.z > iter.offset.z Then new_offset.z = iter.offset.z
-		Next
-		For iter = EachIn blocklist
-			iter.offset = iter.offset.sub( new_offset )
-		Next
+	EndMethod
+	Rem
+		Insert_SubGrid
+		1. Should this method have a selector for over-write (will assume over-write for now)
+		Only inserts blocks with valid locations; locations may be valid in the subgrid, but when added to the
+		provided offset they could become invalid. So it is necessary to check each one.
+	EndRem
+	Method insert_subgrid( offset:iso_coord, subgrid:iso_grid )
 		
-		For iter = EachIn blocklist
-			If new_size.x <= iter.offset.x Then new_size.x = iter.offset.x + 1
-			If new_size.y <= iter.offset.y Then new_size.y = iter.offset.y + 1
-			If new_size.z <= iter.offset.z Then new_size.z = iter.offset.z + 1
-		Next
-		resize( new_size )
+		
 		
 	EndMethod
 	
@@ -209,7 +209,7 @@ Type iso_grid
 			maintain_data_structures()
 			
 		EndIf
-						
+		
 	EndMethod
 	
 	Method reduce_to_contents()
