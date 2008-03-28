@@ -83,6 +83,34 @@ Type iso_coord
 		Return v
 	EndFunction
 	
+	Method compare( other_obj:Object )
+		Local other:iso_coord = iso_coord( other_obj )
+		'difference of the offset layer
+		Local result = value() - other.value()
+		'tiebreaker (only matters when in the same layer)
+		If result = 0
+			'y component tiebreaker (supercedes x and z components)
+			If y > other.y
+				result :+ 4
+			ElseIf y < other.y
+				result :- 4
+			EndIf
+			'x component tiebreaker (supercedes z component)
+			If x > other.x
+				result :+ 2
+			ElseIf x < other.x
+				result :- 2
+			EndIf
+			'z component tiebreaker (lowest priority)
+			If z > other.z
+				result :+ 1
+			ElseIf z < other.z
+				result :- 1
+			EndIf
+		EndIf
+		Return result
+	EndMethod
+	
 	Method set( nx, ny, nz )
 		x = nx; y = ny; z = nz
 	EndMethod
