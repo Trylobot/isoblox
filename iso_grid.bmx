@@ -125,10 +125,12 @@ Type iso_grid
 	
 	Method insert( location:iso_coord, block:iso_block )
 		If location.in_bounds( size )
+			If Not filled_at( location )
+				blockcount :+ 1
+			EndIf
 			filled_at( location ) = True
 			grid_at( location ) = block.copy()
 			backref_at( location ) = renderlist_insert( grid_at( location ))
-			blockcount :+ 1
 		Else
 			'do nothing
 		EndIf
