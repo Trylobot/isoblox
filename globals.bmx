@@ -32,9 +32,7 @@ Global MOUSE_LAST_X = 0
 Global MOUSE_LAST_Y = 0
 
 Global cursor_blink_timer:TTimer = CreateTimer( 300 )
-Global ALPHA_BLINK_1#
-Global ALPHA_BLINK_2#
-Global SELECTION_ALPHA_BLINK#[6]
+Global COLOR_CYCLE[6]
 
 Const COUNT_LIBS   = 6
 Const COUNT_BLOCKS = 77

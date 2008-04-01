@@ -14,16 +14,18 @@ Import "coord.bmx"
 
 Type iso_block
 	
-	Field isotype          'isometric block type (image array index)
-	Field offset:iso_coord 'offset from local origin
-	Field red              'color
-	Field green            'color
-	Field blue             'color
-	Field alpha#           'alpha
+	Field isotype              'index into master sprite array; thus implies BOTH (psuedo)geometry and rotation
+	Field offset:iso_coord     'offset in units of 3D iso-space from the iso-origin
+	Field draw_coord:scr_coord 'offset in screen pixels from screen origin
+	Field red                  'color component
+	Field green                'color component
+	Field blue                 'color component
+	Field alpha#               'alpha component
 	
 	Method New()
-		'defaults: offset is far back corner, cube block, white, and opaque
+		'defaults: offset is farthest corner, isotype is block 0 (cube), colored white, and 100% opaque
 		offset = New iso_coord
+		draw_coord = New scr_coord
 		isotype = 0
 		red = 255
 		green = 255
@@ -34,6 +36,7 @@ Type iso_block
 	Function Create:iso_block( initial_isotype, initial_offset:iso_coord, initial_red, initial_green, initial_blue, initial_alpha# )
 		Local new_block:iso_block = New iso_block
 		new_block.offset = initial_offset.copy()
+		new_block.draw_coord = iso_to_scr( new_block.offset )
 		new_block.isotype = initial_isotype
 		new_block.red = initial_red
 		new_block.green = initial_green
@@ -49,6 +52,7 @@ Type iso_block
 	
 	Method clone( source:iso_block )
 		offset = source.offset.copy()
+		draw_coord = source.draw_coord.copy()
 		isotype = source.isotype
 		red = source.red
 		green = source.green

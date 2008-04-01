@@ -30,62 +30,6 @@ Import "iso_grid.bmx"
 Import "iso_cursor.bmx"
 
 '_________________________________________________________________________
-Function draw_gridlines( grid:iso_grid )
-
-	SetColor( 0, 0, 0 )
-	SetAlpha( 0.090 )
-	
-	SetLineWidth( 1 )
-	
-	draw_lines( ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 1], ..
-		grid.bounds[ 2], ..
-		grid.size.x+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 3], ..
-		grid.bounds[ 4], ..
-		grid.size.y+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 5], ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 4], ..
-		grid.size.y+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 5], ..
-		grid.bounds[ 6], ..
-		grid.bounds[ 7], ..
-		grid.size.z+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 8], ..
-		grid.bounds[ 9], ..
-		grid.bounds[ 2], ..
-		grid.size.x+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 8], ..
-		grid.bounds[10], ..
-		grid.bounds[ 7], ..
-		grid.size.z+1 )
-	
-	SetLineWidth( 2 )
-	
-	draw_heavy_lines( ..
-		grid.bounds[ 6], ..
-		grid.bounds[10], ..
-		grid.bounds[11], ..
-		grid.bounds[12], ..
-		grid.bounds[ 0], ..
-		grid.bounds[13] )
-	
-EndFunction
-
-'_________________________________________________________________________
 Function draw_block_shadows( grid:iso_grid )
 	
 	Local scr_xy:scr_coord
@@ -118,8 +62,9 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 	Local scr:scr_coord, iso:iso_coord
 	Local iter:iso_block
 	Local f_iter:iso_face
+	Local color
 	
-	SetColor( 0, 0, 0 )
+	SetAlpha( 0, 0, 0 )
 	
 	Select cursor.mode
 		
@@ -128,7 +73,8 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 			scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x, cursor.offset.y, 0 ))
 			scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y, cursor.offset.z ))
 			scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x, 0, cursor.offset.z ))
-			SetAlpha( Float( 0.200 ) * ALPHA_BLINK_1 )
+			
+			SetColor( COLOR_CYCLE[0], COLOR_CYCLE[0], COLOR_CYCLE[0] )
 			
 			DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, cursor.basic_block.isotype ], scr_xy.x, scr_xy.y )
 			DrawImage( spritelib_blocks[ LIB_SHADOWS_YZ, cursor.basic_block.isotype ], scr_yz.x, scr_yz.y )
@@ -136,12 +82,13 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 		
 		Case CURSOR_BRUSH
 			
-			For iter = EachIn cursor.brush_grid.blocklist
+			For iter = EachIn cursor.brush_grid.renderlist
 				
 				scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, cursor.offset.y+iter.offset.y, 0 ))
 				scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y+iter.offset.y, cursor.offset.z+iter.offset.z ))
 				scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, 0, cursor.offset.z+iter.offset.z ))
-				SetAlpha( Float( 0.200 ) * ALPHA_BLINK_1 )
+				
+				SetColor( COLOR_CYCLE[0], COLOR_CYCLE[0], COLOR_CYCLE[0] )
 				
 				DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, iter.isotype ], scr_xy.x, scr_xy.y )
 				DrawImage( spritelib_blocks[ LIB_SHADOWS_YZ, iter.isotype ], scr_yz.x, scr_yz.y )
@@ -194,10 +141,9 @@ Function draw_outlines( grid:iso_grid, cursor:iso_cursor )
 	SetAlpha( 1.000 )
 	
 	'draw grid
-	For iter = EachIn grid.blocklist
+	For iter = EachIn grid.renderlist
 		
 		scr = iso_to_scr( iter.offset )
-		
 		DrawImage( spritelib_blocks[ LIB_OUTLINES, iter.isotype ], scr.x, scr.y )
 		
 	Next
@@ -210,7 +156,7 @@ Function draw_blocks( grid:iso_grid )
 	Local scr:scr_coord
 	Local iter:iso_block
 	
-	For iter = EachIn grid.blocklist
+	For iter = EachIn grid.renderlist
 		
 		SetColor( iter.red, iter.green, iter.blue )
 		SetAlpha( iter.alpha )
@@ -236,17 +182,17 @@ Function draw_cursor( cursor:iso_cursor )
 			iter = cursor.basic_block
 			
 			SetColor( iter.red, iter.green, iter.blue )
-			SetAlpha( ALPHA_BLINK_1 )
+			SetAlpha( COLOR_CYCLE[0] )
 			scr = iso_to_scr( cursor.offset.add( iter.offset ))
 			
 			DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
 		
 		Case CURSOR_BRUSH
 			
-			For iter = EachIn cursor.brush_grid.blocklist
+			For iter = EachIn cursor.brush_grid.renderlist
 				
 				SetColor( iter.red, iter.green, iter.blue )
-				SetAlpha( ALPHA_BLINK_1 )
+				SetAlpha( COLOR_CYCLE[0] )
 				scr = iso_to_scr( cursor.offset.add( iter.offset ))
 				
 				DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
@@ -292,7 +238,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
 		Case CURSOR_BASIC
 			
-			g_enum = grid.blocklist.ObjectEnumerator()
+			g_enum = grid.renderlist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
 			c_block = cursor.basic_block
 			drawn_basic_block = False
@@ -302,7 +248,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 				If Not drawn_basic_block And (c_block.offset.value() - g_block.offset.value()) < 0
 					
 					SetColor( c_block.red, c_block.green, c_block.blue )
-					SetAlpha( ALPHA_BLINK_1 )
+					SetAlpha( COLOR_CYCLE[0] )
 					scr = iso_to_scr( cursor.offset.add( c_block.offset ))
 					
 					DrawImage( spritelib_blocks[ LIB_BLOCKS, c_block.isotype ], scr.x, scr.y )
@@ -329,7 +275,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 		
 		Case CURSOR_BRUSH
 			
-			g_enum = grid.blocklist.ObjectEnumerator()
+			g_enum = grid.renderlist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
 			c_enum = cursor.brush_grid.blocklist.ObjectEnumerator()
 			
@@ -346,7 +292,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 						(c_block.offset.value() - g_block.offset.value()) < 0)
 								
 						SetColor( c_block.red, c_block.green, c_block.blue )
-						SetAlpha( ALPHA_BLINK_1 )
+						SetAlpha( COLOR_CYCLE[0] )
 						scr = iso_to_scr( cursor.offset.add( c_block.offset ))
 						
 						DrawImage( spritelib_blocks[ LIB_BLOCKS, c_block.isotype ], scr.x, scr.y )
@@ -444,7 +390,7 @@ Function draw_cursor_wireframe( cursor:iso_cursor )
 	Local scr:scr_coord
 	Local c_iter:iso_block
 	
-	SetAlpha( ALPHA_BLINK_2 )
+	SetAlpha( COLOR_CYCLE[0] )
 	SetColor( 0, 0, 0 )
 	
 	Select cursor.mode
@@ -588,6 +534,62 @@ Function draw_string_literal( message$, scr:scr_coord )
 			scr.y )
 		
 	Next
+	
+EndFunction
+
+'_________________________________________________________________________
+Function draw_gridlines( grid:iso_grid )
+
+	SetColor( 0, 0, 0 )
+	SetAlpha( 0.090 )
+	
+	SetLineWidth( 1 )
+	
+	draw_lines( ..
+		grid.bounds[ 0], ..
+		grid.bounds[ 1], ..
+		grid.bounds[ 2], ..
+		grid.size.x+1 )
+		
+	draw_lines( ..
+		grid.bounds[ 0], ..
+		grid.bounds[ 3], ..
+		grid.bounds[ 4], ..
+		grid.size.y+1 )
+		
+	draw_lines( ..
+		grid.bounds[ 5], ..
+		grid.bounds[ 0], ..
+		grid.bounds[ 4], ..
+		grid.size.y+1 )
+		
+	draw_lines( ..
+		grid.bounds[ 5], ..
+		grid.bounds[ 6], ..
+		grid.bounds[ 7], ..
+		grid.size.z+1 )
+		
+	draw_lines( ..
+		grid.bounds[ 8], ..
+		grid.bounds[ 9], ..
+		grid.bounds[ 2], ..
+		grid.size.x+1 )
+		
+	draw_lines( ..
+		grid.bounds[ 8], ..
+		grid.bounds[10], ..
+		grid.bounds[ 7], ..
+		grid.size.z+1 )
+	
+	SetLineWidth( 2 )
+	
+	draw_heavy_lines( ..
+		grid.bounds[ 6], ..
+		grid.bounds[10], ..
+		grid.bounds[11], ..
+		grid.bounds[12], ..
+		grid.bounds[ 0], ..
+		grid.bounds[13] )
 	
 EndFunction
 
