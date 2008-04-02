@@ -9,9 +9,7 @@ EndRem
 
 Rem
 TODO
- - make resize more efficient, by analyzing previous size and changing a minimal amount of data
- - fix boundary checks
- - reconstruct the select_ghost resizing and initializing; it's fuxx0red
+	fix selection stuff
 EndRem
 
 Strict
@@ -20,29 +18,15 @@ Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"
 
-Rem
-	March 26th, 2008
-	I've decided to use a different internal data structure setup. Instead of using a list to hold
-	the important data, I will instead use a 3D array. A list will still be maintained for efficient
-	rendering. The following operations will be affected:
-	Insert - linear with the total number of blocks (but would like it to be constant time)
-	Delete - linear with the total number of blocks (but would like it to be constant time)
-	Merge grids (paste) - linear with the total number of blocks (between both the grids)
-	Resize - linear with the total number of blocks
-	Rendering - linear with the total number of blocks
-EndRem
 Type iso_grid
 	
-	Field size:iso_coord     'dimensions of grid
-	'NEW FIELDS
+	Field size:iso_coord      'dimensions of grid
 	Field space:iso_block[,,] '3D array of [iso_block] objects
-	Field filled:Int[,,]     'one flag for each position of the grid, indicating its fill status
-	Field renderlist:TList   'list of all [iso_block] objects from grid in render-order
-	Field backref:TLink[,,]  '3D array of references to renderlist items. Starts with all NULL references.
-	Field block_count        'total number of filled positions in the grid
-	'OLD FIELDS
-	'Field blocklist:TList    'list of [iso_block] objects
-	'Field bounds:scr_coord[] 'array of screen coordinates, rendering kludge
+	Field filled:Int[,,]      'one flag for each position of the grid, indicating its fill status
+	Field renderlist:TList    'list of all [iso_block] objects from grid in render-order
+	Field backref:TLink[,,]   '3D array of references to renderlist items. Starts with all NULL references.
+	Field block_count         'total number of filled positions in the grid
+	Field bg_img:TPixmap      'background isometric wireframe grid image
 	
 	Method New()
 		'reserve smallest amount of memory possible for a new iso_grid object
@@ -184,13 +168,69 @@ Type iso_grid
 	EndMethod
 	Rem
 		Insert_SubGrid
-		1. Should this method have a selector for over-write (will assume over-write for now)
-		Only inserts blocks with valid locations; locations may be valid in the subgrid, but when added to the
-		provided offset they could become invalid. So it is necessary to check each one.
+		Should this method have an option for over-write?
+		  (will assume no option, and default to over-write for now)
+		Will only insert blocks with valid locations.
+			Locations are given as the offset of the subgrid origin added to the local offset of the block in question
+		This method is going to be heavily re-worked and optimized, so it may not be pretty.
 	EndRem
 	Method insert_subgrid( offset:iso_coord, subgrid:iso_grid )
 		
+		Rem
+		Local main_enum:TListEnum = renderlist.ObjectEnumerator()
+		Local main_block:iso_block = iso_block( main_enum.NextObject() )		
+		Local sub_enum:TListEnum = subgrid.renderlist.ObjectEnumerator()
+		Local sub_block:iso_block = iso_block( sub_enum.NextObject() )		
+		While ???			
+			'Have to insert stuff... Enums aren't going to be enough. I need to use TLinks.
+			'I also need to figure out how Enums work and replicate that behavior here so I can
+			'  directly insert.			
+			'Looking at the enumeration method in TList will illuminate just how exactly to tell
+			'  when you're at the end of a cyclic list (checking for NULL obviously wouldn't work)
+		EndWhile
+		EndRem
 		
+		
+		Local main_cursor:TLink = renderlist.FirstLink()
+		Local sub_cursor:TLink = subgrid.renderlist.FirstLink()
+		
+		'IF the sub list is empty
+			'exit.
+		'IF the main list is empty
+			'dupe the entire subgrid into the main, then exit.
+		
+		'WHILE the sub's value is LESS THAN the main's ...
+			'IF the sub's location is valid for inserting into the main grid
+				'insert the sub BEFORE the main.
+			'IF there are more blocks in the sub list
+				'increment the sub cursor.
+			'ELSE
+				'exit.
+		'END WHILE
+		
+		'IF there are more blocks in main
+			'increment the main cursor.
+		
+		While ???
+			
+			'WHILE the sub's value is GREATER THAN the main's ...
+				'IF the sub's location is valid for inserting into the main grid
+					'insert the sub AFTER the main, AND increment the main (to compensate for the insertion) 
+					'UNLESS OF COURSE the sub's location over-writes a main
+						'in that case over-write it.
+				
+				'IF there are more blocks in the sub list
+					'increment the sub cursor.
+				'ELSE
+					'exit.
+			'END WHILE
+					
+			'IF there are more blocks in main
+				'increment the main cursor.
+			'ELSE
+				'exit.
+			
+		EndWhile
 		
 	EndMethod
 	
