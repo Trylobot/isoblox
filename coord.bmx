@@ -11,22 +11,15 @@ Strict
 
 
 Function iso_to_scr:scr_coord( iso:iso_coord )
-	
-	Return scr_coord.create(..
-		8 * (iso.x - iso.y),..
-		(4 * (iso.x + iso.y)) - (8 * iso.z) )
-	
+	Return scr_coord.create( 8 * (iso.x - iso.y), (4 * (iso.x + iso.y)) - (8 * iso.z) )
 EndFunction
 
-'since this function could theoretically return a line,
+'since this function could (at least mathematically) return a line,
 ' I choose to return the "closest" position in a 3D isometric volume of a given size that lies on that line.
 Function scr_to_iso:iso_coord( scr:scr_coord, size:iso_coord )
-	
 	'stubbed for now
 	Return New iso_coord
-	
 EndFunction
-
 
 
 Type scr_coord
@@ -68,7 +61,6 @@ Type scr_coord
 	EndMethod
 		
 EndType
-
 
 
 Type iso_coord

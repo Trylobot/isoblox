@@ -58,7 +58,7 @@ Type controller
 	Field SHOW_GRIDLINES       'drawing layer flag
 	Field SHOW_BLOCKS          'drawing layer flag
 	Field SHOW_CURSOR          'drawing layer flag
-	Field SHOW_OUTLINES        'drawing layer flag
+	'Field SHOW_OUTLINES        'drawing layer flag
 	Field SHOW_STATUS_MESSAGES 'drawing layer flag
 	Field SHOW_HELP            'drawing layer flag
 
@@ -87,9 +87,21 @@ Type controller
 		SHOW_GRIDLINES       = True
 		SHOW_BLOCKS          = True
 		SHOW_CURSOR          = True
-		SHOW_OUTLINES        = 1
+		'SHOW_OUTLINES        = 1
 		SHOW_STATUS_MESSAGES = True
 		SHOW_HELP            = False
+		
+	EndMethod
+	
+'_________________________________________________________________________
+	Method load_assets()
+		
+		status.append( "loading assets .." )
+		fileman_load_art()
+		fileman_load_sound()
+		rotate_init()
+		
+		status.append( "$gloaded" )
 		
 	EndMethod
 	
@@ -156,9 +168,12 @@ Type controller
 			EndIf
 		EndIf
 		
+		Rem
+		'This bit has been disabled for now
 		If SHOW_OUTLINES
 			draw_outlines( grid, cursor )
 		EndIf
+		EndRem
 		
 		If SHOW_BLOCKS
 			
@@ -182,55 +197,6 @@ Type controller
 		If SHOW_HELP
 			draw_help()
 		EndIf
-		
-	EndMethod
-	
-'_________________________________________________________________________
-	Function draw_help()
-		
-		SetOrigin( 0, 0 )
-		SetColor( 255, 255, 255 )
-		SetAlpha( 0.750 )
-		DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT )
-		
-		Local scr:scr_coord = scr_coord.Create( 1, 1 )
-		
-		draw_big_msg( ..
-			"$Bisoblox $bhelp~n"+..
-			"~n"+..
-			"show/hide this text   $BF1~n"+..
-			"$Bbasic $Dblock tool      $BZ~n"+..
-			"$Bbrush $Dtool            $BX~n"+..
-			"$Bselection $Dtool        $BC~n"+..
-			"$bmove $Dcursor           $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
-			"$pinsert $Dblock(s)       $Bspacebar~n"+..
-			"$ccycle $Dbasic blocks    $Btab~n"+..
-			"$yrotate $Dblock(s)       $BF$D,$BG$D,$BH $D($b+ $Bctrl$D)~n"+..
-			"change $Bselection size$D $Bshift $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
-			"change $Bgrid size$D      $Bctrl $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
-			"select $Ball$D            F8 (disabled)~n"+..
-			"$gcopy $Dselection        $BF5~n"+..
-			"change basic $rR$gG$bB$BA$D     $rR$D,$gT$D,$bY,$BU $D($b+ $Bctrl$D)~n"+..
-			"$rdelete $Dselected       $Btilde~n"+..
-			"$bsave grid $Dto file     $BF2~n"+..
-			"$gload brush $Dfrom file  $BF3~n"+..
-			"$gload grid $Dfrom file   $BF4~n"+..
-			"layers $gon$D/$yoff         $B1$D,$B2$D,$B3$D,$B4$D,$B5$D,$B6$D,$B7~n"+..
-			"take $bscreenshot$D       $BF12~n"+..
-			"drag $Bviewport$D         $Bmouse_2~n"+..
-			"", scr )
-		
-	EndFunction
-
-'_________________________________________________________________________
-	Method load_assets()
-		
-		status.append( "loading assets .." )
-		fileman_load_art()
-		fileman_load_sound()
-		rotate_init()
-		
-		status.append( "$gloaded" )
 		
 	EndMethod
 	
@@ -521,6 +487,43 @@ Type controller
 		EndIf
 			
 	EndMethod
+
+'_________________________________________________________________________
+	Function draw_help()
+		
+		SetOrigin( 0, 0 )
+		SetColor( 255, 255, 255 )
+		SetAlpha( 0.750 )
+		DrawRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT )
+		
+		Local scr:scr_coord = scr_coord.Create( 1, 1 )
+		
+		draw_big_msg( ..
+			"$Bisoblox $bhelp~n"+..
+			"~n"+..
+			"show/hide this text   $BF1~n"+..
+			"$Bbasic $Dblock tool      $BZ~n"+..
+			"$Bbrush $Dtool            $BX~n"+..
+			"$Bselection $Dtool        $BC~n"+..
+			"$bmove $Dcursor           $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
+			"$pinsert $Dblock(s)       $Bspacebar~n"+..
+			"$ccycle $Dbasic blocks    $Btab~n"+..
+			"$yrotate $Dblock(s)       $BF$D,$BG$D,$BH $D($b+ $Bctrl$D)~n"+..
+			"change $Bselection size$D $Bshift $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
+			"change $Bgrid size$D      $Bctrl $b+ $BW$D,$BA$D,$BS$D,$BD$D,$BQ$D,$BE~n"+..
+			"select $Ball$D            F8 (disabled)~n"+..
+			"$gcopy $Dselection        $BF5~n"+..
+			"change basic $rR$gG$bB$BA$D     $rR$D,$gT$D,$bY,$BU $D($b+ $Bctrl$D)~n"+..
+			"$rdelete $Dselected       $Btilde~n"+..
+			"$bsave grid $Dto file     $BF2~n"+..
+			"$gload brush $Dfrom file  $BF3~n"+..
+			"$gload grid $Dfrom file   $BF4~n"+..
+			"layers $gon$D/$yoff         $B1$D,$B2$D,$B3$D,$B4$D,$B5$D,$B6$D,$B7~n"+..
+			"take $bscreenshot$D       $BF12~n"+..
+			"drag $Bviewport$D         $Bmouse_2~n"+..
+			"", scr )
+		
+	EndFunction
 
 EndType
 

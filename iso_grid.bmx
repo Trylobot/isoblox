@@ -7,17 +7,13 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
-Rem
-TODO
-	fix selection stuff
-EndRem
-
 Strict
 
 Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"
 
+'_________________________________________________________________________
 Type iso_grid
 	
 	Field size:iso_coord      'dimensions of grid
@@ -28,6 +24,7 @@ Type iso_grid
 	Field block_count         'total number of filled positions in the grid
 	Field bg_img:TPixmap      'background isometric wireframe grid image
 	
+  '_________________________________________________________________________
 	Method New()
 		'reserve smallest amount of memory possible for a new iso_grid object
 		size = iso_coord.create( 1, 1, 1 )
@@ -38,6 +35,7 @@ Type iso_grid
 		block_count = 0
 	EndMethod
 	
+  '_________________________________________________________________________
 	Function create:iso_grid( initial_size:iso_coord )
 		'return a new, blank iso_grid of given initial size
 		Local new_space:iso_grid = New iso_grid
@@ -45,10 +43,12 @@ Type iso_grid
 		Return new_space
 	EndFunction
 	
+  '_________________________________________________________________________
 	Method empty()
 		Return renderlist.isEmpty()
 	EndMethod
 	
+  '_________________________________________________________________________
 	'retrieval methods (specific to this object)
 	Method space_at:iso_block( v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
@@ -60,6 +60,7 @@ Type iso_grid
 		Return backref[ v.x, v.y, v.z ]
 	EndMethod
 	
+  '_________________________________________________________________________
 	'retrieval functions (generalized)
 	Function space_at_in:iso_block( space:iso_block[,,], v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
@@ -71,47 +72,7 @@ Type iso_grid
 		Return backref[ v.x, v.y, v.z ]
 	EndFunction 
 		
-	Rem
-		Resize
-		since this operation is now quadratic with the block count instead of constant,
-		I've decided to disable auto-incremental-resize. Instead, the user will
-		manually resize the grid, much like with paint programs.
-		it is now too costly of an operation to be performed in real time, I believe.
-		I hope I won't come to regret this change, as the spontaneous resize was rather cool.
-	EndRem
-	Method resize( new_size:iso_coord )
-		If Not new_size.is_invalid()
-			
-			'reserve space for new data
-			size = new_size.copy()
-			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
-			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
-			Local new_renderlist:TList = New TList
-			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
-			
-			'make one pass through the old renderlist
-			For Local iter:iso_block = EachIn renderlist
-				If iter.offset.in_bounds( size )
-					'this item should be kept; stick it in the new data
-					filled_at_in( new_filled, iter.offset ) = True
-					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
-					backref_at_in( new_backref, iter.offset ) = ..
-						new_renderlist.AddLast( iter )
-				Else
-					'block falls outside the new boundary; equivalent to being deleted
-					block_count :- 1
-				EndIf
-			Next
-			
-			'point to the new data
-			filled = new_filled
-			space = new_space
-			renderlist = new_renderlist
-			backref = new_backref
-			
-		EndIf
-	EndMethod
-	
+  '_________________________________________________________________________
 	Rem
 		Insert
 		1. Should this method have a selector for over-write?
@@ -239,6 +200,7 @@ Type iso_grid
 		
 	EndMethod
 	
+  '_________________________________________________________________________
 	Rem
 		Delete
 		These should now be constant-time operations, using the backref array. No search has to be performed,
@@ -287,9 +249,53 @@ Type iso_grid
 		
 	EndMethod
 	
+  '_________________________________________________________________________
+	Rem
+		Resize
+		since this operation is now quadratic with the block count instead of constant,
+		I've decided to disable auto-incremental-resize. Instead, the user will
+		manually resize the grid, much like with paint programs.
+		it is now too costly of an operation to be performed in real time, I believe.
+		I hope I won't come to regret this change, as the spontaneous resize was rather cool.
+	EndRem
+	Method resize( new_size:iso_coord )
+		If Not new_size.is_invalid()
+			
+			'reserve space for new data
+			size = new_size.copy()
+			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
+			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
+			Local new_renderlist:TList = New TList
+			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+			
+			'make one pass through the old renderlist
+			For Local iter:iso_block = EachIn renderlist
+				If iter.offset.in_bounds( size )
+					'this item should be kept; stick it in the new data
+					filled_at_in( new_filled, iter.offset ) = True
+					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
+					backref_at_in( new_backref, iter.offset ) = ..
+						new_renderlist.AddLast( iter )
+				Else
+					'block falls outside the new boundary; equivalent to being deleted
+					block_count :- 1
+				EndIf
+			Next
+			
+			'point to the new data
+			filled = new_filled
+			space = new_space
+			renderlist = new_renderlist
+			backref = new_backref
+			
+		EndIf
+	EndMethod
+	
+  '_________________________________________________________________________
 	Method copy_to_brush:iso_grid( target:iso_coord, target_size:iso_coord )
 		
-		Local new_grid:iso_grid = New iso_grid
+		Local brush:iso_grid = New iso_grid
+		
 		
 		
 		Rem
@@ -318,8 +324,11 @@ Type iso_grid
 		Return result
 		EndRem
 		
+		Return brush
+		
 	EndMethod
 	
+  '_________________________________________________________________________
 	Method str$()
 		Local s$ = "[iso_grid]~n"
 		Local num = 0

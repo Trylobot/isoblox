@@ -9,7 +9,7 @@ EndRem
 
 Rem
 TODO
- - finish the calculate_frame function
+ - flush out the scr_to_iso_HACK function
 EndRem
 
 Strict
@@ -21,34 +21,38 @@ Import "iso_grid.bmx"
 
 Type iso_cursor
 
-	Field mode                        'basic/brush/select/delete selector
-	Field time:TTimer                 'cursor animation timer
-	Field offset:iso_coord            'cursor anchor point (shared)
-	Field basic_block:iso_block       'basic mode block
-	Field group                       'geometry group selector
-	Field group_isotype[]             'multiple offset memory (1 per group)
-	Field brush_grid:iso_grid         'brush mode content
-	Field select_ghost:iso_ghost_grid 'select mode content
+	Field mode                     'selector (basic|brush|select)
+	Field time:TTimer              'cursor animation timer
+	Field block:iso_block          'basic mode block; also contains global cursor offset
+	Field group_isotype[]          'rotation selector
+	Field group                    'geometry selector
+	Field brush_grid:iso_grid      'brush data (like a clipboard)
+	Field selection_size:iso_coord 'selection extents
 	
 	Method New()
-		
 		mode = CURSOR_BASIC
 		time = CreateTimer( 8 )
 		offset = New iso_coord
 		basic_block = New iso_block
-		group = 0
 		group_isotype = group_starting_index[..]
+		group = 0
 		brush_grid = New iso_grid
-		select_ghost = New iso_ghost_grid
-		
-	EndMethod
-	
-	Method calculate_frame()
-		
-		'modify the colors of the select_ghost faces with the sine function and the timer
-		'rotate each face through black -> white -> black
-		
-		
+		selection_size = New iso_coord
 	EndMethod
 	
 EndType
+
+'temporary function, quickly hacked together and inefficient, but functional;
+'also, belongs in [coord], not here
+Function scr_to_iso_HACK:iso_coord( scr:scr_coord, renderlist:TList )
+	
+	'Scan the renderlist in reverse
+	'FOR Eachin (Reversed) renderlist
+		'If the mouse position is near this renderlist item's location translated to screenspace
+			'Return it
+	'Next
+	
+	'Return an invalid location, indicating that nothing is under the mouse cursor
+	
+EndFunction
+

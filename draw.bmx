@@ -17,6 +17,7 @@ EndRem
 
 Rem
 TODO
+ - eliminate the outlines layer; I will use that sprite set for mouse-hovering
  - finish/fix the CURSOR_SELECT Case for draw functions:
    draw_cursor_shadows, draw_cursor, draw_blocks_with_cursor
 EndRem
@@ -133,6 +134,8 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 EndFunction
 
 '_________________________________________________________________________
+Rem
+'This function has been removed, due to desire not to use it anymore.
 Function draw_outlines( grid:iso_grid, cursor:iso_cursor )
 	
 	Local scr:scr_coord
@@ -149,6 +152,7 @@ Function draw_outlines( grid:iso_grid, cursor:iso_cursor )
 	Next
 	
 EndFunction
+EndRem
 
 '_________________________________________________________________________
 Function draw_blocks( grid:iso_grid )
