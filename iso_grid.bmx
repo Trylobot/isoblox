@@ -289,6 +289,7 @@ Type iso_grid
 	
 	Method copy_to_brush:iso_grid( target:iso_coord, target_size:iso_coord )
 		
+		Local new_grid:iso_grid = New iso_grid
 		
 		
 		Rem
