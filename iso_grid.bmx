@@ -45,6 +45,10 @@ Type iso_grid
 		Return new_space
 	EndFunction
 	
+	Method empty()
+		Return renderlist.isEmpty()
+	EndMethod
+	
 	'retrieval methods (specific to this object)
 	Method space_at:iso_block( v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
@@ -71,7 +75,9 @@ Type iso_grid
 		Resize
 		since this operation is now quadratic with the block count instead of constant,
 		I've decided to disable auto-incremental-resize. Instead, the user will
-		manually resize the grid, much like with 2D paint programs.
+		manually resize the grid, much like with paint programs.
+		it is now too costly of an operation to be performed in real time, I believe.
+		I hope I won't come to regret this change, as the spontaneous resize was rather cool.
 	EndRem
 	Method resize( new_size:iso_coord )
 		If Not new_size.is_invalid()
@@ -106,45 +112,6 @@ Type iso_grid
 		EndIf
 	EndMethod
 	
-	Rem
-		RenderList_Insert
-		this is really an "upsert" in that it can either insert a new value,
-		or update (replace) an old value with the same key.
-		also maintains the sort-order of the renderlist
-	EndRem
-	Method renderlist_insert:TLink( new_block:iso_block )
-		
-		'trivial, empty list case
-		If renderlist.IsEmpty()
-			Return renderlist.AddFirst( new_block )
-		EndIf		
-		
-		'check in case the value should be inserted at the head of the list
-		Local cursor:TLink = renderlist.FirstLink()
-		Local cmp = 0
-		cmp = cursor.compare( new_block )
-		If cmp < 0
-			'even if the list has only one element, this logic works.
-			'TList is a cyclic doubly-linked list; thus, <TList>._head._pred == <TList>._head
-			Return renderlist.InsertBeforeLink( new_block, cursor )
-		EndIf
-		
-		'loop through the whole renderlist
-		For counter = 0 to block_count - 1
-			If cmp > 0
-				'if the value to be inserted should come "on top of"/after the cursor link, insert it there
-				Return renderlist.InsertAfterLink( new_block, cursor )
-			ElseIf cmp = 0
-				'or, if the value to be inserted has the same location as the cursor, update (replace) it
-				cursor.value.clone( value )
-				Return cursor
-			EndIf
-			'advance the cursor
-			cursor = cursor.NextLink()
-			cmp = cursor.compare( new_block )
-		Next
-		
-	EndMethod
 	Rem
 		Insert
 		1. Should this method have a selector for over-write?
@@ -190,7 +157,6 @@ Type iso_grid
 		EndWhile
 		EndRem
 		
-		
 		Local main_cursor:TLink = renderlist.FirstLink()
 		Local sub_cursor:TLink = subgrid.renderlist.FirstLink()
 		
@@ -233,141 +199,77 @@ Type iso_grid
 		EndWhile
 		
 	EndMethod
+	Rem
+		RenderList_Insert
+		this is really an "upsert" in that it can either insert a new value,
+		or update (replace) an old value with the same key.
+		also maintains the sort-order of the renderlist
+	EndRem
+	Method renderlist_insert:TLink( new_block:iso_block )
+		
+		'trivial, empty list case
+		If renderlist.IsEmpty()
+			Return renderlist.AddFirst( new_block )
+		EndIf		
+		
+		'check in case the value should be inserted at the head of the list
+		Local cursor:TLink = renderlist.FirstLink()
+		Local cmp = 0
+		cmp = cursor.compare( new_block )
+		If cmp < 0
+			'even if the list has only one element, this logic works.
+			'TList is a cyclic doubly-linked list; thus, <TList>._head._pred == <TList>._head
+			Return renderlist.InsertBeforeLink( new_block, cursor )
+		EndIf
+		
+		'loop through the whole renderlist
+		For counter = 0 to block_count - 1
+			If cmp > 0
+				'if the value to be inserted should come "on top of"/after the cursor link, insert it there
+				Return renderlist.InsertAfterLink( new_block, cursor )
+			ElseIf cmp = 0
+				'or, if the value to be inserted has the same location as the cursor, update (replace) it
+				cursor.value.clone( value )
+				Return cursor
+			EndIf
+			'advance the cursor
+			cursor = cursor.NextLink()
+			cmp = cursor.compare( new_block )
+		Next
+		
+	EndMethod
 	
 	Rem
-	Method set( new_size:iso_coord, new_list:TList )
-		
-		If new_list.isEmpty()
-			
-			resize( new_size )
-			
-		ElseIf new_size.x > 0 And new_size.y > 0 And new_size.z > 0
-			
-			size = new_size.copy()
-			blocklist = new_list
-			blocklist.Sort()
-			maintain_data_structures()
-			
+		Delete
+		These should now be constant-time operations, using the backref array. No search has to be performed,
+		not on the space array, nor on the renderlist. Backref provides all the info needed.
+		the computational cost of maintaining the backref array is nil. Memory is the cost of this improvement;
+		specifically, the cost of storing extra per-position data, but not much. Just a pointer array.
+	EndRem
+	Method delete( target:iso_coord )
+		'This method is similar to a "quick format" for a hard drive. The renderlist is like a file table.
+		'I simply stop keeping track of a block; later on, if a new block comes to take up that space, I simply
+		'replace it.
+		If target.in_bounds( size ) And filled_at( target )
+			backref_at( target ).Remove()
+			'space_at( target ) = New iso_block
+			filled_at( target ) = False
+			block_count :- 1
 		EndIf
-		
 	EndMethod
-	
-	Method reduce_to_contents()
-		
-		Local new_offset:iso_coord = iso_coord.invalid()
-		Local new_size:iso_coord = iso_coord.invalid()
-		Local iter:iso_block
-		
-		For iter = EachIn blocklist
-			If new_offset.x = -1 Or new_offset.x > iter.offset.x Then new_offset.x = iter.offset.x
-			If new_offset.y = -1 Or new_offset.y > iter.offset.y Then new_offset.y = iter.offset.y
-			If new_offset.z = -1 Or new_offset.z > iter.offset.z Then new_offset.z = iter.offset.z
+	'Applies Delete to a volume of space
+	Method delete_space( target:iso_coord, target_size:iso_coord )
+		Local cursor:iso_coord = New iso_coord
+		For cursor.z = target.z To target_size.z - 1
+			For cursor.y = target.y To target_size.y - 1
+				For cursor.x = target.x To target_size.x - 1
+					delete( cursor )
+				Next
+			Next
 		Next
-		For iter = EachIn blocklist
-			iter.offset = iter.offset.sub( new_offset )
-		Next
-		
-		For iter = EachIn blocklist
-			If new_size.x <= iter.offset.x Then new_size.x = iter.offset.x + 1
-			If new_size.y <= iter.offset.y Then new_size.y = iter.offset.y + 1
-			If new_size.z <= iter.offset.z Then new_size.z = iter.offset.z + 1
-		Next
-		resize( new_size )
-		
 	EndMethod
 	
-	Method expand_for_subvolume( sub_offset:iso_coord, sub_size:iso_coord )
-
-		Local new_size:iso_coord = sub_size.copy()
-		
-		If sub_offset.x + sub_size.x > size.x Then ..
-			new_size.x :+ sub_offset.x + sub_size.x - size.x
-		If sub_offset.y + sub_size.y > size.y Then ..
-			new_size.y :+ sub_offset.y + sub_size.y - size.y
-		If sub_offset.z + sub_size.z > size.z Then ..
-			new_size.z :+ sub_offset.z + sub_size.z - size.z
-		
-		If Not new_size.equal( sub_size )
-			resize( new_size )
-			Return True
-		Else
-			Return False
-		EndIf
-		
-	EndMethod
-
-	Method empty()
-		
-		Return blocklist.isEmpty()
-		
-	EndMethod
-	
-	Method is_filled( target:iso_coord )
-		
-		Return in_bounds( target ) And filled[ target.x, target.y, target.z ]
-		
-	EndMethod
-	
-	Method fill_target( target:iso_coord )
-		
-		If in_bounds( target ) Then filled[ target.x, target.y, target.z ] = True
-		
-	EndMethod
-	
-	Method clear_target( target:iso_coord )
-		
-		If in_bounds( target ) Then filled[ target.x,target.y, target.z ] = False
-		
-	EndMethod
-	
-	Method erase_at_offset( target:iso_coord )
-		
-		If in_bounds( target) And is_filled( target )
-			
-			Local iter_link:TLink = blocklist.FirstLink()
-			While iter_link <> Null
-				
-				'if this iso_block has the target offset
-				If iso_block(iter_link.Value()).offset.equal(target)
-					
-					iter_link.Remove()
-					clear_target( target )
-					Return
-				
-				EndIf
-				
-				iter_link = iter_link.NextLink()
-			
-			EndWhile
-			
-		EndIf
-		
-	EndMethod
-	
-	Method insert_new_block( new_block:iso_block )
-		
-		If is_filled( new_block.offset ) Then erase_at_offset( new_block.offset )
-		fill_target( new_block.offset )
-		blocklist.AddFirst( new_block.copy() )
-		blocklist.Sort()
-		
-	EndMethod
-	
-	Method search_by_offset:iso_block( target:iso_coord )
-		
-		For Local iter:iso_block = EachIn blocklist
-			
-			If target.equal( iter.offset )
-				Return iter
-			EndIf
-			
-		Next
-		
-		Return iso_block.invalid()
-		
-	EndMethod
-	
-	Method intersection_with_ghost:TList( ghost_offset:iso_coord, ghost_grid:iso_ghost_grid )
+	Method copy_to_brush:iso_grid( target:iso_coord, target_size:iso_coord )
 		
 		Local new_block:iso_block
 		Local result:TList = CreateList()
@@ -382,11 +284,11 @@ Type iso_grid
 				iter.offset.x < far_offset.x And ..
 				iter.offset.y < far_offset.y And ..
 				iter.offset.z < far_offset.z
-			
+				
 				new_block = iter.copy()
 				new_block.offset = iter.offset.sub( ghost_offset )
 				result.AddLast( new_block )
-			
+				
 			EndIf
 			
 		Next
@@ -396,39 +298,17 @@ Type iso_grid
 	EndMethod
 	
 	Method str$()
-		
 		Local s$ = "[iso_grid]~n"
 		Local num = 0
 		For Local iter:iso_block = EachIn blocklist
-			
 			s :+ " "+num+" "+iter.str()+"~n"			
 			num :+ 1
-			
 		Next
 		
 		Return s
-		
 	EndMethod
-	
-	Method maintain_data_structures()
-		
-		calculate_bounds()
 
-		filled = New Int[ size.x, size.y, size.z ]
-		
-		Local iter:iso_block
-		For iter = EachIn blocklist
-			
-			If (Not in_bounds( iter.offset )) Or is_filled( iter.offset )					
-				erase_at_offset( iter.offset )					
-			Else
-				fill_target( iter.offset )
-			EndIf
-			
-		Next
-		
-	EndMethod
-	
+	Rem
 	Method calculate_bounds()
 		
 		bounds = New scr_coord[14]
@@ -451,11 +331,17 @@ Type iso_grid
 		bounds[13] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
 		
 	EndMethod
-	
 	EndRem
 	
 EndType
 
+Rem
+'After consideration, I've decided that this class is extraneous. Instead of storing the selection grid
+'in memory, I will draw the selection procedurally from the minimum amount of data
+'(specifically, the offset of the cursor, and the size of the selection grid)
+'this will be slightly more computationally expensive to draw, but resizing the selection will be a
+'constant-time operation, which was my goal. Hopefully with the new insert_subgrid method, I will see
+'fewer slowdowns when selecting, copying and pasting.
 Type iso_ghost_grid
 	
 	Field size:iso_coord      'dimensions of grid
@@ -487,8 +373,6 @@ Type iso_ghost_grid
 			facelist.Clear()
 			
 			Local iso:iso_coord = New iso_coord
-			
-			Rem
 			
 			iso.z = 0
 			For iso.x = 0 To (size.x - 1)
@@ -530,10 +414,10 @@ Type iso_ghost_grid
 			
 			facelist.Sort()
 			
-			EndRem
-			
 		EndIf
 		
 	EndMethod
 	
 EndType
+EndRem
+

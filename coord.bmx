@@ -17,12 +17,13 @@ Function iso_to_scr:scr_coord( iso:iso_coord )
 	
 EndFunction
 
-Function scr_to_iso:iso_coord( scr:scr_coord )
+'since this function could theoretically return a line,
+' I choose to return the "closest" position in a 3D isometric volume of a given size that lies on that line.
+Function scr_to_iso:iso_coord( scr:scr_coord, size:iso_coord )
 	
-	Local iso:iso_coord = New iso_coord
-	'stub; insert code here for mapping screen coordinates to isometric grid coordinates
-	Return iso
-
+	'stubbed for now
+	Return New iso_coord
+	
 EndFunction
 
 

@@ -33,7 +33,7 @@ Type iso_block
 		alpha = 1.000
 	EndMethod
 	
-	Function Create:iso_block( initial_isotype, initial_offset:iso_coord, initial_red, initial_green, initial_blue, initial_alpha# )
+	Function create:iso_block( initial_isotype, initial_offset:iso_coord, initial_red, initial_green, initial_blue, initial_alpha# )
 		Local new_block:iso_block = New iso_block
 		new_block.offset = initial_offset.copy()
 		new_block.draw_coord = iso_to_scr( new_block.offset )
@@ -64,9 +64,11 @@ Type iso_block
 		Return offset.compare( iso_block( other ).offset )
 	EndMethod
 	
+	Rem
 	Function invalid:iso_block()
 		Return Create( -1, iso_coord.invalid(), -1, -1, -1, -1.000 )
 	EndFunction
+	EndRem
 	
 	Method is_invalid()
 		Return ..
@@ -84,6 +86,8 @@ Type iso_block
 	
 EndType
 
+Rem
+'I have decided that this class is extraneous. I will probably remove it.
 Type iso_face
 	
 	Field face             'selector; face on the unit cube
@@ -129,6 +133,7 @@ Type iso_face
 	EndMethod
 	
 EndType
+EndRem
 
 Function block_to_face_compare( block_A:iso_block, face_B:iso_face )
 	
