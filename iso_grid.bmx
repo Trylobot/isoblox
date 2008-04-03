@@ -252,25 +252,46 @@ Type iso_grid
 		'replace it.
 		If target.in_bounds( size ) And filled_at( target )
 			backref_at( target ).Remove()
-			'space_at( target ) = New iso_block
+			'space_at( target ) = ? (old block data retained)
 			filled_at( target ) = False
 			block_count :- 1
 		EndIf
 	EndMethod
-	'Applies Delete to a volume of space
+	'Delete Space
+	'applies Delete to a volume
 	Method delete_space( target:iso_coord, target_size:iso_coord )
-		Local cursor:iso_coord = New iso_coord
-		For cursor.z = target.z To target_size.z - 1
-			For cursor.y = target.y To target_size.y - 1
-				For cursor.x = target.x To target_size.x - 1
-					delete( cursor )
+		
+		'constrain volume to only "in_bounds" targets (for efficiency)
+		Local constrained_target:iso_coord = target.copy()
+		Local constrained_target_size:iso_coord = target_size.copy()
+		If constrained_target.x < 0 Then constrained_target.x = 0
+		If constrained_target.y < 0 Then constrained_target.y = 0
+		If constrained_target.z < 0 Then constrained_target.z = 0
+		If constrained_target.x + constrained_target_size.x > size.x Then constrained_target_size.x = size.x - constrained_target.x
+		If constrained_target.y + constrained_target_size.y > size.y Then constrained_target_size.y = size.y - constrained_target.y
+		If constrained_target.z + constrained_target_size.z > size.z Then constrained_target_size.z = size.z - constrained_target.z
+		
+		'loop through the constrained volume, deleting everything in your path! buah-hahahaha! >:D
+		For cursor.z = constrained_target.z To constrained_target_size.z - 1
+			For cursor.y = constrained_target.y To constrained_target_size.y - 1
+				For cursor.x = constrained_target.x To constrained_target_size.x - 1
+					If filled_at( target )
+						backref_at( target ).Remove()
+						'space_at( target ) = ? (old block data retained)
+						filled_at( target ) = False
+						block_count :- 1
+					EndIf
 				Next
 			Next
 		Next
+		
 	EndMethod
 	
 	Method copy_to_brush:iso_grid( target:iso_coord, target_size:iso_coord )
 		
+		
+		
+		Rem
 		Local new_block:iso_block
 		Local result:TList = CreateList()
 		
@@ -294,6 +315,7 @@ Type iso_grid
 		Next
 		
 		Return result
+		EndRem
 		
 	EndMethod
 	

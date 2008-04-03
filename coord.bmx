@@ -9,6 +9,7 @@ EndRem
 
 Strict
 
+
 Function iso_to_scr:scr_coord( iso:iso_coord )
 	
 	Return scr_coord.create(..
