@@ -7,6 +7,12 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
+Rem
+TODO
+- optimize copy_volume() using backref+renderlist to skip the empty parts of the selected volume,
+  and to dump out early when blocks start appearing outside the selected volume.
+EndRem
+
 Strict
 
 Import "globals.bmx"
@@ -24,7 +30,7 @@ Type iso_grid
 	Field block_count         'total number of filled positions in the grid
 	Field bg_img:TPixmap      'background isometric wireframe grid image
 	
-  '_________________________________________________________________________
+  'New______________________________________________________________________
 	Method New()
 		'reserve smallest amount of memory possible for a new iso_grid object
 		size = iso_coord.create( 1, 1, 1 )
@@ -35,7 +41,7 @@ Type iso_grid
 		block_count = 0
 	EndMethod
 	
-  '_________________________________________________________________________
+  'Create___________________________________________________________________
 	Function create:iso_grid( initial_size:iso_coord )
 		'return a new, blank iso_grid of given initial size
 		Local new_space:iso_grid = New iso_grid
@@ -43,13 +49,12 @@ Type iso_grid
 		Return new_space
 	EndFunction
 	
-  '_________________________________________________________________________
-	Method empty()
-		Return renderlist.isEmpty()
+  'Is Empty_________________________________________________________________
+	Method is_empty()
+		Return block_count
 	EndMethod
 	
-  '_________________________________________________________________________
-	'retrieval methods (specific to this object)
+  'Internal Retrieval (set of 3)____________________________________________
 	Method space_at:iso_block( v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
 	EndMethod
@@ -60,8 +65,7 @@ Type iso_grid
 		Return backref[ v.x, v.y, v.z ]
 	EndMethod
 	
-  '_________________________________________________________________________
-	'retrieval functions (generalized)
+  'Generalized Retrieval (set of 3)_______________________________________
 	Function space_at_in:iso_block( space:iso_block[,,], v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
 	EndFunction 
@@ -72,142 +76,155 @@ Type iso_grid
 		Return backref[ v.x, v.y, v.z ]
 	EndFunction 
 		
-  '_________________________________________________________________________
-	Rem
-		Insert
-		1. Should this method have a selector for over-write?
-		will insert a new block at a location, or over-write existing.
-		the location is provided inside the object.
-	EndRem
-	Method insert( new_block:iso_block )
-		
-		If new_block.offset.in_bounds( size )
+  'Insert___________________________________________________________________
+	'Should this method have a selector for over-write?
+	'for now it will insert a new block at a location, or over-write existing.
+	'the location for the insert must be provided inside the object's [offset] field
+	Method insert( new_block_raw:iso_block )
+		If new_block_raw.offset.in_bounds( size )
 			
+			Local new_block:iso_block = new_block_raw.copy()
+			
+			'trivial, empty list case
+			If renderlist.IsEmpty()
+				Return renderlist.AddFirst( new_block )
+			EndIf		
+			
+			Local main_cursor:TLink = renderlist.FirstLink()
+			Local main_block:iso_block
+			Local cmp
+			
+			'traverse the renderlist and insert the new block wherever it's supposed to go
+			While main_cursor <> Null
+				main_block = iso_block( main_cursor.Value() )
+				
+				cmp = main_block.compare( new_block )
+				
+				If cmp < 0
+					
+					If Not filled_at( new_block.offset )
+						block_count :+ 1
+					EndIf
+					
+					filled_at( new_block.offset ) = True
+					space_at( new_block.offset ) = new_block
+					backref_at( new_block.offset ) = renderlist.InsertBeforeLink( new_block, main_cursor )
+					
+					Return
+					
+				ElseIf cmp = 0
+					
+					main_block.clone( new_block )
+					
+				EndIf
+				
+				main_cursor = main_cursor.NextLink()
+			EndWhile
+			
+			'just insert the block at the end
 			If Not filled_at( new_block.offset )
 				block_count :+ 1
 			EndIf
-			
+			'insert
 			filled_at( new_block.offset ) = True
-			space_at( new_block.offset ) = new_block.copy()
-			backref_at( new_block.offset ) = renderlist_insert( space_at( location ))
+			space_at( new_block.offset ) = new_block
+			backref_at( new_block.offset ) = renderlist.AddLast( new_block )
 			
 		EndIf
-		
 	EndMethod
-	Rem
-		Insert_SubGrid
-		Should this method have an option for over-write?
-		  (will assume no option, and default to over-write for now)
-		Will only insert blocks with valid locations.
-			Locations are given as the offset of the subgrid origin added to the local offset of the block in question
-		This method is going to be heavily re-worked and optimized, so it may not be pretty.
-	EndRem
-	Method insert_subgrid( offset:iso_coord, subgrid:iso_grid )
+	
+	'Insert Brush_____________________________________________________________
+	'Should this method have an option for over-write?
+	' (will assume no option, and default to over-write for now)
+	'Will only insert blocks with valid locations.
+	' Locations are given as the offset of the subgrid origin added to the local offset of the block in question
+	'This method is going to be heavily re-worked and optimized, so it may not be pretty.
+	Method insert_brush( target:iso_coord, brush:iso_grid )
 		
-		Rem
-		Local main_enum:TListEnum = renderlist.ObjectEnumerator()
-		Local main_block:iso_block = iso_block( main_enum.NextObject() )		
-		Local sub_enum:TListEnum = subgrid.renderlist.ObjectEnumerator()
-		Local sub_block:iso_block = iso_block( sub_enum.NextObject() )		
-		While ???			
-			'Have to insert stuff... Enums aren't going to be enough. I need to use TLinks.
-			'I also need to figure out how Enums work and replicate that behavior here so I can
-			'  directly insert.			
-			'Looking at the enumeration method in TList will illuminate just how exactly to tell
-			'  when you're at the end of a cyclic list (checking for NULL obviously wouldn't work)
-		EndWhile
-		EndRem
+		If brush.is_empty() Then Return
 		
+		If is_empty()
+			'copy the entire brush into this iso_grid
+			
+			Return
+		EndIf
+		
+		Local new_block:iso_block
 		Local main_cursor:TLink = renderlist.FirstLink()
-		Local sub_cursor:TLink = subgrid.renderlist.FirstLink()
+		Local brush_cursor:TLink = brush.renderlist.FirstLink()
+		Local main_block:iso_block = iso_block( main_cursor.Value() )
+		Local brush_block:iso_block = iso_block( brush_cursor.Value() )
 		
-		'IF the sub list is empty
-			'exit.
-		'IF the main list is empty
-			'dupe the entire subgrid into the main, then exit.
+		Local cmp = main_block.compare( brush_block )
 		
-		'WHILE the sub's value is LESS THAN the main's ...
-			'IF the sub's location is valid for inserting into the main grid
-				'insert the sub BEFORE the main.
-			'IF there are more blocks in the sub list
-				'increment the sub cursor.
-			'ELSE
-				'exit.
-		'END WHILE
-		
-		'IF there are more blocks in main
-			'increment the main cursor.
-		
-		While ???
+		While main_cursor <> Null
+			main_block = iso_block( main_cursor.Value() )
 			
-			'WHILE the sub's value is GREATER THAN the main's ...
-				'IF the sub's location is valid for inserting into the main grid
-					'insert the sub AFTER the main, AND increment the main (to compensate for the insertion) 
-					'UNLESS OF COURSE the sub's location over-writes a main
-						'in that case over-write it.
+			'perform any necessary insertions from the brush
+			While brush_cursor <> Null
+				brush_block = iso_block( brush_cursor.Value() )
 				
-				'IF there are more blocks in the sub list
-					'increment the sub cursor.
-				'ELSE
-					'exit.
-			'END WHILE
+				new_block = brush_block.copy()
+				new_block.offset = brush_block.offset.add( target )
+				
+				If new_block.offset.in_bounds( size )
 					
-			'IF there are more blocks in main
-				'increment the main cursor.
-			'ELSE
-				'exit.
+					cmp = main_block.compare( new_block )
+					
+					If cmp < 0
+						
+						If Not filled_at( new_block.offset )
+							block_count :+ 1
+						EndIf
+						
+						filled_at( new_block.offset ) = True
+						space_at( new_block.offset ) = new_block
+						backref_at( new_block.offset ) = renderlist.InsertBeforeLink( new_block, main_cursor )
+						
+					ElseIf cmp = 0
+						
+						space_at( new_offset ).clone( new_block )
+						
+					Else
+						
+						Exit While
+						
+					EndIf
+					
+				EndIf
+				
+				brush_cursor = brush_cursor.NextLink()
+			EndWhile
 			
+			main_cursor = main_cursor.NextLink()
 		EndWhile
 		
-	EndMethod
-	Rem
-		RenderList_Insert
-		this is really an "upsert" in that it can either insert a new value,
-		or update (replace) an old value with the same key.
-		also maintains the sort-order of the renderlist
-	EndRem
-	Method renderlist_insert:TLink( new_block:iso_block )
-		
-		'trivial, empty list case
-		If renderlist.IsEmpty()
-			Return renderlist.AddFirst( new_block )
-		EndIf		
-		
-		'check in case the value should be inserted at the head of the list
-		Local cursor:TLink = renderlist.FirstLink()
-		Local cmp = 0
-		cmp = cursor.compare( new_block )
-		If cmp < 0
-			'even if the list has only one element, this logic works.
-			'TList is a cyclic doubly-linked list; thus, <TList>._head._pred == <TList>._head
-			Return renderlist.InsertBeforeLink( new_block, cursor )
-		EndIf
-		
-		'loop through the whole renderlist
-		For counter = 0 to block_count - 1
-			If cmp > 0
-				'if the value to be inserted should come "on top of"/after the cursor link, insert it there
-				Return renderlist.InsertAfterLink( new_block, cursor )
-			ElseIf cmp = 0
-				'or, if the value to be inserted has the same location as the cursor, update (replace) it
-				cursor.value.clone( value )
-				Return cursor
-			EndIf
-			'advance the cursor
-			cursor = cursor.NextLink()
-			cmp = cursor.compare( new_block )
-		Next
+		'perform any tail-end insertions
+		While brush_cursor <> Null
+			brush_block = iso_block( brush_cursor.Value() )
+				
+				new_block = brush_block.copy()
+				new_block.offset = brush_block.offset.add( target )
+				
+				If new_block.offset.in_bounds( size )
+					
+					block_count :+ 1
+					filled_at( new_block.offset ) = True
+					space_at( new_block.offset ) = new_block
+					backref_at( new_block.offset ) = renderlist.AddLast( new_block )
+					
+				EndIf
+				
+			brush_cursor = brush_cursor.NextLink()
+		EndWhile
 		
 	EndMethod
 	
-  '_________________________________________________________________________
-	Rem
-		Delete
-		These should now be constant-time operations, using the backref array. No search has to be performed,
-		not on the space array, nor on the renderlist. Backref provides all the info needed.
-		the computational cost of maintaining the backref array is nil. Memory is the cost of this improvement;
-		specifically, the cost of storing extra per-position data, but not much. Just a pointer array.
-	EndRem
+  'Delete___________________________________________________________________
+	'These should now be constant-time operations, using the backref array. No search has to be performed,
+	'not on the space array, nor on the renderlist. Backref provides all the info needed.
+	'the computational cost of maintaining the backref array is nil. Memory is the cost of this improvement;
+	'specifically, the cost of storing extra per-position data, but not much. Just a pointer array.
 	Method delete( target:iso_coord )
 		'This method is similar to a "quick format" for a hard drive. The renderlist is like a file table.
 		'I simply stop keeping track of a block; later on, if a new block comes to take up that space, I simply
@@ -219,28 +236,36 @@ Type iso_grid
 			block_count :- 1
 		EndIf
 	EndMethod
-	'Delete Space
-	'applies Delete to a volume
-	Method delete_space( target:iso_coord, target_size:iso_coord )
+	
+	'Delete Volume____________________________________________________________
+	Method delete_volume( target:iso_coord, target_size:iso_coord )
+		
+		Local cursor:iso_coord = New iso_coord
 		
 		'constrain volume to only "in_bounds" targets (for efficiency)
 		Local constrained_target:iso_coord = target.copy()
 		Local constrained_target_size:iso_coord = target_size.copy()
-		If constrained_target.x < 0 Then constrained_target.x = 0
-		If constrained_target.y < 0 Then constrained_target.y = 0
-		If constrained_target.z < 0 Then constrained_target.z = 0
-		If constrained_target.x + constrained_target_size.x > size.x Then constrained_target_size.x = size.x - constrained_target.x
-		If constrained_target.y + constrained_target_size.y > size.y Then constrained_target_size.y = size.y - constrained_target.y
-		If constrained_target.z + constrained_target_size.z > size.z Then constrained_target_size.z = size.z - constrained_target.z
+		If constrained_target.x < 0 Then ..
+			constrained_target.x = 0
+		If constrained_target.y < 0 Then ..
+			constrained_target.y = 0
+		If constrained_target.z < 0 Then ..
+			constrained_target.z = 0
+		If constrained_target.x + constrained_target_size.x > size.x Then ..
+			constrained_target_size.x = size.x - constrained_target.x
+		If constrained_target.y + constrained_target_size.y > size.y Then ..
+			constrained_target_size.y = size.y - constrained_target.y
+		If constrained_target.z + constrained_target_size.z > size.z Then ..
+			constrained_target_size.z = size.z - constrained_target.z
 		
 		'loop through the constrained volume, deleting everything in your path! buah-hahahaha! >:D
 		For cursor.z = constrained_target.z To constrained_target_size.z - 1
 			For cursor.y = constrained_target.y To constrained_target_size.y - 1
 				For cursor.x = constrained_target.x To constrained_target_size.x - 1
-					If filled_at( target )
-						backref_at( target ).Remove()
-						'space_at( target ) = ? (old block data retained)
-						filled_at( target ) = False
+					If filled_at( cursor )
+						backref_at( cursor ).Remove()
+						'space_at( cursor ) = ? (old block data retained)
+						filled_at( cursor ) = False
 						block_count :- 1
 					EndIf
 				Next
@@ -249,15 +274,13 @@ Type iso_grid
 		
 	EndMethod
 	
-  '_________________________________________________________________________
-	Rem
-		Resize
-		since this operation is now quadratic with the block count instead of constant,
-		I've decided to disable auto-incremental-resize. Instead, the user will
-		manually resize the grid, much like with paint programs.
-		it is now too costly of an operation to be performed in real time, I believe.
-		I hope I won't come to regret this change, as the spontaneous resize was rather cool.
-	EndRem
+  'Resize________________________________________________________________
+	'Resize
+	'since this operation is now quadratic with the block count instead of constant,
+	'I've decided to disable auto-incremental-resize. Instead, the user will
+	'manually resize the grid, much like with paint programs.
+	'it is now too costly of an operation to be performed in real time, I believe.
+	'I hope I won't come to regret this change, as the spontaneous resize was rather cool.
 	Method resize( new_size:iso_coord )
 		If Not new_size.is_invalid()
 			
@@ -291,39 +314,51 @@ Type iso_grid
 		EndIf
 	EndMethod
 	
-  '_________________________________________________________________________
-	Method copy_to_brush:iso_grid( target:iso_coord, target_size:iso_coord )
+  'Copy Volume______________________________________________________________
+	'This method could be optimized a tad, using backref
+	Method copy_volume:iso_grid( target:iso_coord, target_size:iso_coord )
 		
 		Local brush:iso_grid = New iso_grid
+		brush.resize( target_size )
+		Local cursor:iso_coord = New iso_coord
+		Local brush_offset:iso_coord = New iso_coord
 		
+		'constrain volume to only "in_bounds" targets (for efficiency)
+		Local constrained_target:iso_coord = target.copy()
+		Local constrained_target_size:iso_coord = target_size.copy()
+		If constrained_target.x < 0 Then ..
+			constrained_target.x = 0
+		If constrained_target.y < 0 Then ..
+			constrained_target.y = 0
+		If constrained_target.z < 0 Then ..
+			constrained_target.z = 0
+		If constrained_target.x + constrained_target_size.x > size.x Then ..
+			constrained_target_size.x = size.x - constrained_target.x
+		If constrained_target.y + constrained_target_size.y > size.y Then ..
+			constrained_target_size.y = size.y - constrained_target.y
+		If constrained_target.z + constrained_target_size.z > size.z Then ..
+			constrained_target_size.z = size.z - constrained_target.z
 		
-		
-		Rem
-		Local new_block:iso_block
-		Local result:TList = CreateList()
-		
-		For Local iter:iso_block = EachIn blocklist
-			
-			Local far_offset:iso_coord = ghost_offset.add( ghost_grid.size )	
-			If ..
-				iter.offset.x >= ghost_offset.x And ..
-				iter.offset.y >= ghost_offset.y And ..
-				iter.offset.z >= ghost_offset.z And ..
-				iter.offset.x < far_offset.x And ..
-				iter.offset.y < far_offset.y And ..
-				iter.offset.z < far_offset.z
-				
-				new_block = iter.copy()
-				new_block.offset = iter.offset.sub( ghost_offset )
-				result.AddLast( new_block )
-				
-			EndIf
-			
+		'loop through the constrained volume, copying blocks into the brush
+		For cursor.z = constrained_target.z To constrained_target_size.z - 1
+			For cursor.y = constrained_target.y To constrained_target_size.y - 1
+				For cursor.x = constrained_target.x To constrained_target_size.x - 1
+					'if this grid contains a block
+					If filled_at( cursor )
+						'translate the cursor offset into local brush space
+						brush_offset = cursor.sub( constrained_target )
+						'insert a copy of this block into the brush grid
+						brush.block_count :+ 1
+						brush.filled_at( brush_offset ) = True
+						brush.space_at( brush_offset ) = space_at( cursor ).copy()
+						brush.space_at( brush_offset ).offset = brush_offset
+						brush.backref_at( brush_offset ) = brush.renderlist_insert( brush.space_at( brush_offset ))
+					EndIf
+				Next
+			Next
 		Next
 		
-		Return result
-		EndRem
-		
+		'return the new subgrid
 		Return brush
 		
 	EndMethod
@@ -367,89 +402,4 @@ Type iso_grid
 	
 EndType
 
-Rem
-'After consideration, I've decided that this class is extraneous. Instead of storing the selection grid
-'in memory, I will draw the selection procedurally from the minimum amount of data
-'(specifically, the offset of the cursor, and the size of the selection grid)
-'this will be slightly more computationally expensive to draw, but resizing the selection will be a
-'constant-time operation, which was my goal. Hopefully with the new insert_subgrid method, I will see
-'fewer slowdowns when selecting, copying and pasting.
-Type iso_ghost_grid
-	
-	Field size:iso_coord      'dimensions of grid
-	Field facelist:TList      'list of [iso_face] objects
-	Field agents:iso_coord[6] 'agents for procedural facelist generation
-	
-	Method New()
-		
-		size = New iso_coord
-		facelist = CreateList()
-		
-	EndMethod
-	
-	Function Create:iso_ghost_grid( initial_size:iso_coord )
-		
-		Local new_ghost:iso_ghost_grid = New iso_ghost_grid
-		new_ghost.resize( initial_size )
-		
-		Return new_ghost
-		
-	EndFunction
-	
-	Method resize( new_size:iso_coord )
-		
-		'ensure new_size is nonzero for all dimensions
-		If (new_size.x > 0) And (new_size.y > 0) And (new_size.z > 0)
-			
-			size = new_size.copy()			
-			facelist.Clear()
-			
-			Local iso:iso_coord = New iso_coord
-			
-			iso.z = 0
-			For iso.x = 0 To (size.x - 1)
-				For iso.y = 0 To (size.y - 1)				
-					facelist.AddLast( iso_face.Create( FACE_XY_MINUS, iso ))
-				Next
-			Next
-			iso.x = 0
-			For iso.y = 0 To (size.y - 1)
-				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.Create( FACE_YZ_MINUS, iso ))
-				Next
-			Next
-			iso.y = 0
-			For iso.x = 0 To (size.x - 1)
-				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.Create( FACE_XZ_MINUS, iso ))
-				Next
-			Next
-			
-			iso.z = (size.z - 1)
-			For iso.x = 0 To (size.x - 1)
-				For iso.y = 0 To (size.y - 1)				
-					facelist.AddLast( iso_face.Create( FACE_XY_PLUS, iso ))
-				Next
-			Next
-			iso.x = (size.x - 1)
-			For iso.y = 0 To (size.y - 1)
-				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.Create( FACE_YZ_PLUS, iso ))
-				Next
-			Next
-			iso.y = (size.y - 1)
-			For iso.x = 0 To (size.x - 1)
-				For iso.z = 0 To (size.z - 1)				
-					facelist.AddLast( iso_face.Create( FACE_XZ_PLUS, iso ))
-				Next
-			Next
-			
-			facelist.Sort()
-			
-		EndIf
-		
-	EndMethod
-	
-EndType
-EndRem
 

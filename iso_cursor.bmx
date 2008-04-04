@@ -46,13 +46,21 @@ EndType
 'also, belongs in [coord], not here
 Function scr_to_iso_HACK:iso_coord( scr:scr_coord, renderlist:TList )
 	
-	'Scan the renderlist in reverse
-	'FOR Eachin (Reversed) renderlist
-		'If the mouse position is near this renderlist item's location translated to screenspace
-			'Return it
-	'Next
+	'if there's nothing to scan, return an invalid location, indicating that nothing's under the cursor
+	If renderlist.IsEmpty() Then Return iso_coord.invalid()
 	
-	'Return an invalid location, indicating that nothing is under the mouse cursor
+	'scan the renderlist in reverse
+	Local iter:TLink = renderlist.LastLink()
+	Local offset:scr_coord
+	While iter <> Null
+		offset = iso_to_scr( iso_block( iter.Value() ).offset )
+		If Abs( scr.x - offset.x ) < 11 And Abs( scr.y - offset.y ) < 11
+			Return offset
+		EndIf	
+	EndWhile
+	
+	'Return an invalid location, because the mouse isn't hovering over anything
+	Return iso_coord.invalid()
 	
 EndFunction
 
