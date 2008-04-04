@@ -9,8 +9,8 @@ EndRem
 
 Strict
 
-Import "globals.bmx"
-Import "coord.bmx"
+Import "globals.bmx" 'for rotation_map[]
+Import "coord.bmx"   'for {iso_coord} and {scr_coord}
 
 Type iso_block
 	
@@ -60,6 +60,10 @@ Type iso_block
 		'alpha = source.alpha
 	EndMethod
 	
+	Method rotate( operation )
+		isotype = rotation_map[ operation, isotype ]
+	EndFunction
+
 	Method compare( other:Object )
 		Return offset.compare( iso_block( other ).offset )
 	EndMethod

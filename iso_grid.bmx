@@ -28,7 +28,6 @@ Type iso_grid
 	Field renderlist:TList    'list of all [iso_block] objects from grid in render-order
 	Field backref:TLink[,,]   '3D array of references to renderlist items. Starts with all NULL references.
 	Field block_count         'total number of filled positions in the grid
-	Field bg_img:TPixmap      'background isometric wireframe grid image
 	
   'New______________________________________________________________________
 	Method New()
@@ -76,11 +75,11 @@ Type iso_grid
 		Return backref[ v.x, v.y, v.z ]
 	EndFunction 
 		
-  'Insert___________________________________________________________________
+  'Insert Block_____________________________________________________________
 	'Should this method have a selector for over-write?
 	'for now it will insert a new block at a location, or over-write existing.
 	'the location for the insert must be provided inside the object's [offset] field
-	Method insert( new_block_raw:iso_block )
+	Method insert_block( new_block_raw:iso_block )
 		If new_block_raw.offset.in_bounds( size )
 			
 			Local new_block:iso_block = new_block_raw.copy()
@@ -220,12 +219,12 @@ Type iso_grid
 		
 	EndMethod
 	
-  'Delete___________________________________________________________________
+  'Delete Block_____________________________________________________________
 	'These should now be constant-time operations, using the backref array. No search has to be performed,
 	'not on the space array, nor on the renderlist. Backref provides all the info needed.
 	'the computational cost of maintaining the backref array is nil. Memory is the cost of this improvement;
 	'specifically, the cost of storing extra per-position data, but not much. Just a pointer array.
-	Method delete( target:iso_coord )
+	Method delete_block( target:iso_coord )
 		'This method is similar to a "quick format" for a hard drive. The renderlist is like a file table.
 		'I simply stop keeping track of a block; later on, if a new block comes to take up that space, I simply
 		'replace it.
@@ -272,46 +271,6 @@ Type iso_grid
 			Next
 		Next
 		
-	EndMethod
-	
-  'Resize________________________________________________________________
-	'Resize
-	'since this operation is now quadratic with the block count instead of constant,
-	'I've decided to disable auto-incremental-resize. Instead, the user will
-	'manually resize the grid, much like with paint programs.
-	'it is now too costly of an operation to be performed in real time, I believe.
-	'I hope I won't come to regret this change, as the spontaneous resize was rather cool.
-	Method resize( new_size:iso_coord )
-		If Not new_size.is_invalid()
-			
-			'reserve space for new data
-			size = new_size.copy()
-			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
-			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
-			Local new_renderlist:TList = New TList
-			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
-			
-			'make one pass through the old renderlist
-			For Local iter:iso_block = EachIn renderlist
-				If iter.offset.in_bounds( size )
-					'this item should be kept; stick it in the new data
-					filled_at_in( new_filled, iter.offset ) = True
-					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
-					backref_at_in( new_backref, iter.offset ) = ..
-						new_renderlist.AddLast( iter )
-				Else
-					'block falls outside the new boundary; equivalent to being deleted
-					block_count :- 1
-				EndIf
-			Next
-			
-			'point to the new data
-			filled = new_filled
-			space = new_space
-			renderlist = new_renderlist
-			backref = new_backref
-			
-		EndIf
 	EndMethod
 	
   'Copy Volume______________________________________________________________
@@ -363,18 +322,175 @@ Type iso_grid
 		
 	EndMethod
 	
-  '_________________________________________________________________________
-	Method str$()
-		Local s$ = "[iso_grid]~n"
-		Local num = 0
-		For Local iter:iso_block = EachIn blocklist
-			s :+ " "+num+" "+iter.str()+"~n"			
-			num :+ 1
+  'Resize________________________________________________________________
+	'since this operation is now quadratic with the block count instead of constant,
+	'I've decided to disable auto-incremental-resize. Instead, the user will
+	'manually resize the grid, much like with paint programs.
+	'it is now too costly of an operation to be performed in real time, I believe.
+	'I hope I won't come to regret this change, as the spontaneous resize was rather cool.
+	Method resize( new_size:iso_coord )
+		If Not new_size.is_invalid()
+			
+			'reserve space for new data
+			size = new_size.copy()
+			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
+			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
+			Local new_renderlist:TList = New TList
+			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+			
+			'make one pass through the old renderlist
+			For Local iter:iso_block = EachIn renderlist
+				If iter.offset.in_bounds( size )
+					'this item should be kept; stick it in the new data
+					filled_at_in( new_filled, iter.offset ) = True
+					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
+					backref_at_in( new_backref, iter.offset ) = ..
+						new_renderlist.AddLast( iter )
+				Else
+					'block falls outside the new boundary; equivalent to being deleted
+					block_count :- 1
+				EndIf
+			Next
+			
+			'point to the new data
+			filled = new_filled
+			space = new_space
+			renderlist = new_renderlist
+			backref = new_backref
+			
+		EndIf
+	EndMethod
+	
+  'Rotate____________________________________________________________________________________________
+	'the contents of this {iso_grid} are rotated 90 degrees in the direction specified by {operation}
+	' around the center of this {iso_grid}
+	'Because of my sweeping changes to the structure of iso_grid, this function will also have
+	' to be completely re-worked.
+	'This method could be possibly the most complicated method to date. I anticipate only the optimized
+	' version of scr_to_iso being more complex.
+	Method rotate( operation )
+		
+		'determine new size, and the translation vector to be applied at the end of the operation
+		Local new_size:iso_coord = New iso_coord
+		Select operation
+			Case ROTATE_X_MINUS
+				new_size.y = size.z
+				new_size.z = size.y
+			Case ROTATE_Y_MINUS
+				new_size.x = size.z
+				new_size.z = size.x
+			Case ROTATE_Z_MINUS
+				new_size.x = size.y
+				new_size.y = size.x
+			Case ROTATE_X_PLUS
+				new_size.y = size.z
+				new_size.z = size.y
+			Case ROTATE_Y_PLUS
+				new_size.x = size.z
+				new_size.z = size.x
+			Case ROTATE_Z_PLUS
+				new_size.x = size.y
+				new_size.y = size.x
+		EndSelect
+		Local old_size:iso_coord = size.copy()
+		size = new_size
+		
+		'reserve space for new replacement data
+		Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
+		Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
+		Local new_renderlist:TList = New TList
+		Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+		
+		'make one pass through the old renderlist
+		Local new_block:iso_block
+		For Local iter:iso_block = EachIn renderlist
+			new_block = iter.copy()
+			
+			'rotate the sprite
+			new_block.rotate( operation )
+			
+			'rotate the coordinates around the origin, and then translate back into positive space
+			Select operation
+				Case ROTATE_X_MINUS
+					new_block.offset.y = -iter.offset.z + old_size.z
+					new_block.offset.z =  iter.offset.y
+				Case ROTATE_Y_MINUS
+					new_block.offset.x = -iter.offset.z + old_size.x
+					new_block.offset.z =  iter.offset.x
+				Case ROTATE_Z_MINUS
+					new_block.offset.x = -iter.offset.y + old_size.y
+					new_block.offset.y =  iter.offset.x
+				Case ROTATE_X_PLUS
+					new_block.offset.y =  iter.offset.z
+					new_block.offset.z = -iter.offset.y + old_size.y
+				Case ROTATE_Y_PLUS
+					new_block.offset.x =  iter.offset.z
+					new_block.offset.z = -iter.offset.x + old_size.z
+				Case ROTATE_Z_PLUS
+					new_block.offset.x =  iter.offset.y
+					new_block.offset.y = -iter.offset.x + old_size.x
+			EndSelect
+			
+			
+			
 		Next
 		
-		Return s
+		'point to the new data
+		filled = new_filled
+		space = new_space
+		renderlist = new_renderlist
+		backref = new_backref
+		
+		Rem
+		'apply rotation operation to each block in the list
+		Local curr_block:iso_block
+		For curr_block = EachIn blocklist
+			
+			'apply rotation to image
+			curr_block.isotype = rotate( operation, curr_block.isotype )
+			
+			'apply rotation to coordinates
+			curr_block.offset = curr_block.offset.sub( anchor )
+			Local new_offset:iso_coord = curr_block.offset.copy()
+			Select operation
+				Case ROTATE_X_MINUS
+					new_offset.y = -curr_block.offset.z
+					new_offset.z =  curr_block.offset.y
+				Case ROTATE_Y_MINUS
+					new_offset.x = -curr_block.offset.z
+					new_offset.z =  curr_block.offset.x
+				Case ROTATE_Z_MINUS
+					new_offset.x = -curr_block.offset.y
+					new_offset.y =  curr_block.offset.x
+				Case ROTATE_X_PLUS
+					new_offset.y =  curr_block.offset.z
+					new_offset.z = -curr_block.offset.y
+				Case ROTATE_Y_PLUS
+					new_offset.x =  curr_block.offset.z
+					new_offset.z = -curr_block.offset.x
+				Case ROTATE_Z_PLUS
+					new_offset.x =  curr_block.offset.y
+					new_offset.y = -curr_block.offset.x
+			EndSelect
+			curr_block.offset = new_offset.add( anchor )
+			
+		Next
+		
+		'sort grid
+		blocklist.Sort()
+		
+		'apply translation to entire grid
+		'translation amount is unknown until all translations have been made
+		Local delta:iso_coord = iso_coord(blocklist.First())
+		For curr_block = EachIn blocklist
+			
+			curr_block.offset = curr_block.offset.sub( delta )
+			
+		Next
+		EndRem
+		
 	EndMethod
-
+	
 	Rem
 	Method calculate_bounds()
 		
@@ -400,6 +516,18 @@ Type iso_grid
 	EndMethod
 	EndRem
 	
+	'To String________________________________________________________________
+	Method str$()
+		Local s$ = "[iso_grid]~n"
+		Local num = 0
+		For Local iter:iso_block = EachIn blocklist
+			s :+ " "+num+" "+iter.str()+"~n"			
+			num :+ 1
+		Next
+		
+		Return s
+	EndMethod
+
 EndType
 
 

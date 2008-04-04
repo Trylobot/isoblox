@@ -9,22 +9,22 @@ EndRem
 
 Rem
 TODO
- - map 2D screen coordinates to 3D rays originating at the "camera" (which is infinitely far away,
-   but since the screen is orthoganal, no distortion is present) by narrowing down each coordinate
-   individually (i.e., find the set of possible X & Y by dividing up the screen into columns, each
-   as wide as a single sprite, and then taking what's left and narrowing further using the other axes).
- - when adding or deleting blocks or bunches of blocks at once, play one sound and
-   only on confirmed success of the entire operation, using a return code from iso_grid methods
- - allow the "hold down & place constantly" operation again
- - create a method using the mouse that a rectangular area can be defined, as a copy of a single block,
-   and then created all at once (simcity style, in other words)
- - cache the background line grid and only redraw on resize
- - cleanup the keyboard_input function. it is currently creating status messages
-   and executing commands, but it should only be calling commands in the command
-   module based on keyboard input. status messages should be reserved for the command module.
- - fix the boundary checks so that when blocks are moved past a boundary, the isogrid is resized accordingly
- - fix the iso_face class so selecting the entire grid isn't so slow!
- - redesign the system for modifying the RGBA values for the basic block.
+- map 2D screen coordinates to 3D rays originating at the "camera" (which is infinitely far away,
+  but since the screen is orthoganal, no distortion is present) by narrowing down each coordinate
+  individually (i.e., find the set of possible X & Y by dividing up the screen into columns, each
+  as wide as a single sprite, and then taking what's left and narrowing further using the other axes).
+- when adding or deleting blocks or bunches of blocks at once, play one sound and
+  only on confirmed success of the entire operation, using a return code from iso_grid methods
+- allow the "hold down & place constantly" operation again
+- create a method using the mouse that a rectangular area can be defined, as a copy of a single block,
+  and then created all at once (simcity style, in other words)
+- cache the background line grid and only redraw on resize
+- cleanup the keyboard_input function. it is currently creating status messages
+  and executing commands, but it should only be calling commands in the command
+  module based on keyboard input. status messages should be reserved for the command module.
+- fix the boundary checks so that when blocks are moved past a boundary, the isogrid is resized accordingly
+- fix the iso_face class so selecting the entire grid isn't so slow!
+- redesign the system for modifying the RGBA values for the basic block.
 EndRem
 
 Strict
@@ -35,7 +35,7 @@ Import "coord.bmx"
 Import "iso_block.bmx"
 Import "iso_grid.bmx"
 Import "iso_cursor.bmx"
-Import "rotate.bmx"
+'Import "rotate.bmx"       'this source file has been split up and distributed to globals, iso_block and iso_grid
 Import "draw.bmx"
 Import "command.bmx"
 Import "message_nanny.bmx"
@@ -50,7 +50,7 @@ Type controller
 	Field REDRAW_BG            'background validity indicator
 	Field bg_cache:TImage      'background image cached texture
 	
-	Field grid:iso_grid        'root-level isometric grid
+	Field canvas:iso_grid      'root-level isometric grid
 	Field cursor:iso_cursor    'root-level isometric cursor
 	Field status:message_nanny 'status message handler
 	
@@ -73,13 +73,13 @@ Type controller
 			"first time? $bpress F1 for help", ..
 			"edit app $cconfiguration $Dwith [$Bisoblox.cfg$D]" ]
 		mouse = scr_coord.Create( MouseX(), MouseY() )
-		grid = iso_grid.Create(..
+		canvas = iso_grid.Create(..
 			iso_coord.Create( GRID_X, GRID_Y, GRID_Z ))
 		cursor = New iso_cursor
 		
 		REDRAW_BG = True
 		
-		cursor.offset = iso_coord.Create( grid.size.x / 2, grid.size.y / 2, 0 )
+		cursor.offset = iso_coord.Create( canvas.size.x / 2, grid.size.y / 2, 0 )
 		cursor.select_ghost.resize( iso_coord.Create( 1, 1, 1 ))
 		status = New message_nanny
 		
@@ -99,7 +99,7 @@ Type controller
 		status.append( "loading assets .." )
 		fileman_load_art()
 		fileman_load_sound()
-		rotate_init()
+		initialize_rotation_map()
 		
 		status.append( "$gloaded" )
 		
@@ -110,7 +110,7 @@ Type controller
 		
 		keyboard_input()
 		draw()
-
+		
 		'DRAW_DEBUG_INFORMATION()
 		
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
