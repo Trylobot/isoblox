@@ -71,18 +71,20 @@ Type controller
 		
 		seconds = CreateTimer( 1 )
 		last_tick = -1
+		
 		intro_messages = [ ..
 			"welcome to $Bisoblox$D!", ..
 			"programming and art by $BTyler W.R. Cole", ..
 			"first time? $bpress F1 for help", ..
 			"edit app $cconfiguration $Dwith [$Bisoblox.cfg$D]" ]
-		mouse = scr_coord.Create( MouseX(), MouseY() )
-		canvas = iso_grid.Create(..
-			iso_coord.Create( GRID_X, GRID_Y, GRID_Z ))
-		cursor = New iso_cursor
 		
-		cursor.offset = iso_coord.Create( canvas.size.x / 2, canvas.size.y / 2, 0 )
-		cursor.select_ghost.resize( iso_coord.Create( 1, 1, 1 ))
+		mouse = scr_coord.Create( MouseX(), MouseY() )
+		canvas = iso_grid.Create( iso_coord.Create( GRID_X, GRID_Y, GRID_Z ))
+		
+		cursor = New iso_cursor
+		cursor.block.offset = iso_coord.Create( canvas.size.x / 2, canvas.size.y / 2, 0 )
+		cursor.size = iso_coord.Create( 1, 1, 1 )
+		
 		status = New message_nanny
 		
 		SHOW_SHADOWS         = True
@@ -148,10 +150,13 @@ Type controller
 
 		SetOrigin( ORIGIN_X, ORIGIN_Y )
 		
+		'This chunk has been disabled while I figure out what I'm going to do about selecting and its blink-pattern
+		Rem
 		Local t = cursor_blink_timer.Ticks()
 		For Local phase_index = 0 To 5
 			COLOR_CYCLE[phase_index] = Sin( x - ( phase_index * ( 2 * ( Pi / 6 ))))
 		Next
+		EndRem
 		
 		'This chunk has been disabled while I re-write the draw_gridlines functions
 		Rem
@@ -188,9 +193,9 @@ Type controller
 			If Not SHOW_CURSOR
 				draw_blocks( canvas )
 			Else 'SHOW_CURSOR
-				If Not canvas.empty()
+				If Not canvas.is_empty()
 					draw_blocks_with_cursor( canvas, cursor )
-				Else 'canvas.empty()
+				Else 'canvas.is_empty()
 					draw_cursor( cursor )
 				EndIf
 				draw_cursor_wireframe( cursor )
@@ -269,7 +274,7 @@ Type controller
 		If KeyHit( Key_Tab )
 			cursor.group :+ 1
 			If cursor.group >= COUNT_GROUPS Then cursor.group = 0
-			cursor.basic_block.isotype = cursor.group_isotype[cursor.group]
+			cursor.block.isotype = cursor.group_isotype[cursor.group]
 		EndIf
 		
 		'_________________________
@@ -326,8 +331,8 @@ Type controller
 						
 				EndIf
 				
-				cursor.basic_block.isotype = rotate( operation, cursor.basic_block.isotype )
-				cursor.group_isotype[cursor.group] = cursor.basic_block.isotype
+				cursor.block.rotate( operation )
+				cursor.group_isotype[cursor.group] = cursor.block.isotype
 				
 			EndIf
 			
@@ -337,26 +342,28 @@ Type controller
 				
 				If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
 					
-					If KeyDown( Key_R ) And cursor.basic_block.red   < 255   Then cursor.basic_block.red   :+ 5
-					If KeyDown( Key_T ) And cursor.basic_block.green < 255   Then cursor.basic_block.green :+ 5
-					If KeyDown( Key_Y ) And cursor.basic_block.blue  < 255   Then cursor.basic_block.blue  :+ 5
-					If KeyDown( Key_U ) And cursor.basic_block.alpha < 1.000 Then cursor.basic_block.alpha :+ 0.050
+					If KeyDown( Key_R ) And cursor.block.red   < 255   Then cursor.block.red   :+ 5
+					If KeyDown( Key_T ) And cursor.block.green < 255   Then cursor.block.green :+ 5
+					If KeyDown( Key_Y ) And cursor.block.blue  < 255   Then cursor.block.blue  :+ 5
+					'If KeyDown( Key_U ) And cursor.block.alpha < 1.000 Then cursor.block.alpha :+ 0.050
 					
 				Else 'KeyDown( L/RControl )
 					
-					If KeyDown( Key_R ) And cursor.basic_block.red   >  5     Then cursor.basic_block.red   :- 5
-					If KeyDown( Key_T ) And cursor.basic_block.green >  5     Then cursor.basic_block.green :- 5
-					If KeyDown( Key_Y ) And cursor.basic_block.blue  >  5     Then cursor.basic_block.blue  :- 5
-					If KeyDown( Key_U ) And cursor.basic_block.alpha >  0.050 Then cursor.basic_block.alpha :- 0.050
+					If KeyDown( Key_R ) And cursor.block.red   >  5     Then cursor.block.red   :- 5
+					If KeyDown( Key_T ) And cursor.block.green >  5     Then cursor.block.green :- 5
+					If KeyDown( Key_Y ) And cursor.block.blue  >  5     Then cursor.block.blue  :- 5
+					'If KeyDown( Key_U ) And cursor.block.alpha >  0.050 Then cursor.block.alpha :- 0.050
 					
 				EndIf
 			EndIf
 		
+		'Resizing incrementally of any grid has been disabled due to massive cost of operation
+		Rem
 		'_____________________________
 		'RESIZING THE CURSOR SELECTION
 			If cursor.mode = CURSOR_SELECT And (KeyDown( Key_LShift ) Or KeyDown( Key_RShift ))
 				
-				Local new_size:iso_coord = cursor.select_ghost.size.copy()
+				Local new_size:iso_coord = cursor.size.copy()
 				
 				If KeyDown( Key_A ) And new_size.x > 0
 					new_size.x :- 1
@@ -414,6 +421,7 @@ Type controller
 				EndIf
 		
 			EndIf
+			EndRem
 					
 		EndIf
 		
@@ -421,17 +429,17 @@ Type controller
 		'CHANGING THE CURSOR MODE
 		If KeyHit( Key_Z )
 			cursor.mode = CURSOR_BASIC
-			command_expand_grid_for_cursor( canvas, cursor )
+			'command_expand_grid_for_cursor( canvas, cursor )
 		ElseIf KeyHit( Key_X )
-			If cursor.brush.empty()
+			If cursor.brush.is_empty()
 				status.append( "$ywarning; cannot use brush tool $D(must load a brush first)" )
 			Else	
 				cursor.mode = CURSOR_BRUSH
-				command_expand_grid_for_cursor( canvas, cursor )
+				'command_expand_grid_for_cursor( canvas, cursor )
 			EndIf
 		ElseIf KeyHit( Key_C )
 			cursor.mode = CURSOR_SELECT
-			command_expand_grid_for_cursor( canvas, cursor )
+			'command_expand_grid_for_cursor( canvas, cursor )
 		EndIf
 		
 		'_________________
@@ -475,6 +483,8 @@ Type controller
 				status.append( "$Bcursor $Dlayer $ydisabled" )
 			EndIf
 		EndIf
+		'This layer has been disabled, probably permanently
+		Rem
 		If KeyHit( Key_5 )
 			If Not SHOW_OUTLINES
 				SHOW_OUTLINES = True
@@ -484,6 +494,7 @@ Type controller
 				status.append( "$Boutline $Dlayer $ydisabled" )
 			EndIf
 		EndIf
+		EndRem
 		If KeyHit( Key_6 )
 			If Not SHOW_STATUS_MESSAGES
 				SHOW_STATUS_MESSAGES = True
@@ -498,7 +509,7 @@ Type controller
 			SHOW_GRIDLINES = True
 			SHOW_BLOCKS = True
 			SHOW_CURSOR = True
-			SHOW_OUTLINES = 1
+			'SHOW_OUTLINES = 1
 			SHOW_STATUS_MESSAGES = True
 			status.append( "$Ball layers $Dnormal" )
 		EndIf

@@ -21,22 +21,30 @@ Import "iso_grid.bmx"
 
 Type iso_cursor
 
-	Field mode            'selector (basic|brush|select)
-	Field time:TTimer     'cursor animation timer
-	Field block:iso_block 'basic mode block; also contains global cursor offset
-	Field group_isotype[] 'rotation selector
-	Field group           'geometry selector
-	Field brush:iso_grid  'brush data (like a clipboard)
-	Field size:iso_coord  'selection extents
+	Field mode             'selector (basic|brush|select)
+	Field block:iso_block  'basic mode block; also contains global cursor offset
+	Field size:iso_coord   'selection extents
+	Field group_isotype[]  'rotation selector
+	Field group            'geometry selector
+	Field brush:iso_grid   'brush data (like a clipboard)
+	Field brush_list:TList 'list of brushes to use (list of clipboards)
+	Field time:TTimer      'cursor animation timer
 	
 	Method New()
 		mode = CURSOR_BASIC
-		time = CreateTimer( 8 )
 		block = New iso_block
+		size = New iso_coord
 		group_isotype = group_starting_index[..]
 		group = 0
 		brush = New iso_grid
-		size = New iso_coord
+		brush_list = CreateList()
+		brush_list.AddLast( brush )
+		time = CreateTimer( 8 )
+	EndMethod
+	
+	Method add_brush( new_brush:iso_grid )
+		brush_list.AddLast( new_brush )
+		brush = new_brush
 	EndMethod
 	
 EndType

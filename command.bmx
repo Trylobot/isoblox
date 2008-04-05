@@ -35,9 +35,9 @@ Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor 
 	If SOUND Then PlaySound( high_click )
 	Select cursor.mode
 		Case CURSOR_BASIC
-			grid.insert_block( cursor.block.copy() )
+			grid.insert_block( cursor.block )
 		Case CURSOR_BRUSH
-			grid.insert_subgrid( cursor.brush_grid )
+			grid.insert_brush( cursor.block.offset, cursor.brush )
 	EndSelect
 EndFunction
 
@@ -83,13 +83,13 @@ EndFunction
 Function command_brush_load( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 
 	status.append( "$prequesting filename" )
-	Local filename$ = fileman_grid_load_system( cursor.brush_grid )
+	Local filename$ = fileman_grid_load_system( cursor.brush )
 	If filename <> "ERROR"
 		
 		status.append( "loading $Biso_grid $Das $Bbrush $Dfrom [$B" + filename + "$D] ..." )
 		cursor.mode = CURSOR_BRUSH
-		cursor.brush_grid.reduce_to_contents()
-		command_expand_grid_for_cursor( grid, cursor )
+		'cursor.brush_grid.reduce_to_contents()
+		'command_expand_grid_for_cursor( grid, cursor )
 		status.append( "cursor brush $gloaded successfully" )
 		
 	Else 'filename = "ERROR"
@@ -106,7 +106,7 @@ Function command_grid_load( status:message_nanny, grid:iso_grid, cursor:iso_curs
 	If filename <> "ERROR"
 		
 		status.append( "loading $Biso_grid $Dfrom [$B" + filename + "$D] ..." )
-		command_expand_grid_for_cursor( grid, cursor )
+		'command_expand_grid_for_cursor( grid, cursor )
 		status.append( "iso_grid $gloaded successfully" )
 		
 	Else 'filename = "ERROR"
@@ -118,25 +118,7 @@ EndFunction
 'Copy_________________________________________________________________________________________________
 Function command_copy( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 			
-	status.append( "copying selected blocks to brush" )
-	Local size:iso_coord = cursor.select_ghost.size
-	Local intersect_list:TList = ..
-		grid.intersection_with_ghost( ..
-			cursor.offset, ..
-			cursor.select_ghost )
-	
-	If Not intersect_list.isEmpty()
-	
-		cursor.brush_grid.set( size, intersect_list )
-		cursor.brush_grid.reduce_to_contents()
-		cursor.mode = CURSOR_BRUSH
-		status.append( "selection $gcopied $Dto brush" )
-	
-	Else 'intersect_list.isEmpty()
-	
-		status.append( "$bnothing to copy" )
-		
-	EndIf
+	cursor.add_brush( grid.copy_volume( cursor.block.offset, cursor.size ))
 			
 EndFunction
 
@@ -144,8 +126,8 @@ EndFunction
 Function command_select_all( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 	
 	cursor.mode = CURSOR_SELECT
-	cursor.offset.set( 0, 0, 0 )
-	cursor.select_ghost.resize( grid.size )
+	cursor.block.offset.set( 0, 0, 0 )
+	cursor.size = grid.size
 	
 EndFunction
 
