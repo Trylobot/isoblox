@@ -17,9 +17,10 @@ EndRem
 
 Rem
 TODO
- - eliminate the outlines layer; I will use that sprite set for mouse-hovering
- - finish/fix the CURSOR_SELECT Case for draw functions:
-   draw_cursor_shadows, draw_cursor, draw_blocks_with_cursor
+- optimize draw_blocks_with_cursor; use TLink instead of the enumerators
+- eliminate the outlines layer; I will use that sprite set for mouse-hovering
+- finish/fix the CURSOR_SELECT Case for draw functions:
+  draw_cursor_shadows, draw_cursor, draw_blocks_with_cursor
 EndRem
 
 Strict
@@ -31,6 +32,22 @@ Import "iso_grid.bmx"
 Import "iso_cursor.bmx"
 
 '_________________________________________________________________________
+Function draw_hover_block( offset:iso_coord )
+	
+	Local scr:scr_coord
+	Local iter:iso_block
+	SetColor( 0, 0, 0 )
+	SetAlpha( 1.000 )
+	
+	scr = iso_to_scr( iter.offset )
+	DrawImage( spritelib_blocks[ LIB_OUTLINES, iter.isotype ], scr.x, scr.y )
+	
+	SetColor( iter.red, iter.green, iter.blue )
+	DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
+	
+EndFunction
+
+'_________________________________________________________________________
 Function draw_block_shadows( grid:iso_grid )
 	
 	Local scr_xy:scr_coord
@@ -40,7 +57,7 @@ Function draw_block_shadows( grid:iso_grid )
 	SetColor( 222, 222, 222 )
 	SetAlpha( 1.000 )
 	
-	For iter = EachIn grid.blocklist
+	For iter = EachIn grid.renderlist
 		
 		scr_xy = iso_to_scr( iso_coord.Create( iter.offset.x, iter.offset.y, 0 ))
 		scr_yz = iso_to_scr( iso_coord.Create( 0, iter.offset.y, iter.offset.z ))
@@ -62,32 +79,32 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 	Local scr_xz:scr_coord
 	Local scr:scr_coord, iso:iso_coord
 	Local iter:iso_block
-	Local f_iter:iso_face
+	'Local f_iter:iso_face
 	Local color
 	
-	SetAlpha( 0, 0, 0 )
+	SetAlpha( 1.000 )
 	
 	Select cursor.mode
 		
 		Case CURSOR_BASIC
 			
-			scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x, cursor.offset.y, 0 ))
-			scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y, cursor.offset.z ))
-			scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x, 0, cursor.offset.z ))
+			scr_xy = iso_to_scr( iso_coord.Create( cursor.block.offset.x, cursor.block.offset.y, 0 ))
+			scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.block.offset.y, cursor.block.offset.z ))
+			scr_xz = iso_to_scr( iso_coord.Create( cursor.block.offset.x, 0, cursor.block.offset.z ))
 			
 			SetColor( COLOR_CYCLE[0], COLOR_CYCLE[0], COLOR_CYCLE[0] )
 			
-			DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, cursor.basic_block.isotype ], scr_xy.x, scr_xy.y )
-			DrawImage( spritelib_blocks[ LIB_SHADOWS_YZ, cursor.basic_block.isotype ], scr_yz.x, scr_yz.y )
-			DrawImage( spritelib_blocks[ LIB_SHADOWS_XZ, cursor.basic_block.isotype ], scr_xz.x, scr_xz.y )
+			DrawImage( spritelib_blocks[ LIB_SHADOWS_XY, cursor.block.isotype ], scr_xy.x, scr_xy.y )
+			DrawImage( spritelib_blocks[ LIB_SHADOWS_YZ, cursor.block.isotype ], scr_yz.x, scr_yz.y )
+			DrawImage( spritelib_blocks[ LIB_SHADOWS_XZ, cursor.block.isotype ], scr_xz.x, scr_xz.y )
 		
 		Case CURSOR_BRUSH
 			
-			For iter = EachIn cursor.brush_grid.renderlist
+			For iter = EachIn cursor.brush.renderlist
 				
-				scr_xy = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, cursor.offset.y+iter.offset.y, 0 ))
-				scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.offset.y+iter.offset.y, cursor.offset.z+iter.offset.z ))
-				scr_xz = iso_to_scr( iso_coord.Create( cursor.offset.x+iter.offset.x, 0, cursor.offset.z+iter.offset.z ))
+				scr_xy = iso_to_scr( iso_coord.Create( cursor.block.offset.x+iter.offset.x, cursor.block.offset.y+iter.offset.y, 0 ))
+				scr_yz = iso_to_scr( iso_coord.Create( 0, cursor.block.offset.y+iter.offset.y, cursor.block.offset.z+iter.offset.z ))
+				scr_xz = iso_to_scr( iso_coord.Create( cursor.block.offset.x+iter.offset.x, 0, cursor.block.offset.z+iter.offset.z ))
 				
 				SetColor( COLOR_CYCLE[0], COLOR_CYCLE[0], COLOR_CYCLE[0] )
 				
@@ -133,9 +150,9 @@ Function draw_cursor_shadows( cursor:iso_cursor )
 	
 EndFunction
 
-'_________________________________________________________________________
 Rem
-'This function has been removed, due to desire not to use it anymore.
+'This function has been removed, because I decided outlines just don't look like I envisioned.
+'_________________________________________________________________________
 Function draw_outlines( grid:iso_grid, cursor:iso_cursor )
 	
 	Local scr:scr_coord
@@ -163,7 +180,7 @@ Function draw_blocks( grid:iso_grid )
 	For iter = EachIn grid.renderlist
 		
 		SetColor( iter.red, iter.green, iter.blue )
-		SetAlpha( iter.alpha )
+		'SetAlpha( iter.alpha )
 		scr = iso_to_scr( iter.offset )
 		
 		DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
@@ -177,27 +194,27 @@ Function draw_cursor( cursor:iso_cursor )
 	
 	Local scr:scr_coord
 	Local iter:iso_block
-	Local f_iter:iso_face
+	'Local f_iter:iso_face
 	
 	Select cursor.mode
 	
 		Case CURSOR_BASIC
 			
-			iter = cursor.basic_block
+			iter = cursor.block
 			
 			SetColor( iter.red, iter.green, iter.blue )
 			SetAlpha( COLOR_CYCLE[0] )
-			scr = iso_to_scr( cursor.offset.add( iter.offset ))
+			scr = iso_to_scr( iter.offset )
 			
 			DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
 		
 		Case CURSOR_BRUSH
 			
-			For iter = EachIn cursor.brush_grid.renderlist
+			For iter = EachIn cursor.brush.renderlist
 				
 				SetColor( iter.red, iter.green, iter.blue )
 				SetAlpha( COLOR_CYCLE[0] )
-				scr = iso_to_scr( cursor.offset.add( iter.offset ))
+				scr = iso_to_scr( cursor.block.offset.add( iter.offset ))
 				
 				DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
 				
@@ -226,6 +243,7 @@ Function draw_cursor( cursor:iso_cursor )
 EndFunction
 
 '_________________________________________________________________________
+'optimize this, and use links (not an enumerator)
 Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
 	Local g_enum:TListEnum
@@ -233,10 +251,12 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
 	Local c_enum:TListEnum
 	Local c_block:iso_block
-	Local c_face:iso_face
+	'Local c_face:iso_face
 	
 	Local scr:scr_coord
 	Local drawn_basic_block
+	
+	SetAlpha( 1.000 )
 	
 	Select cursor.mode
 	
@@ -262,7 +282,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 				Else
 					
 					SetColor( g_block.red, g_block.green, g_block.blue )
-					SetAlpha( g_block.alpha )
+					'SetAlpha( g_block.alpha )
 					scr = iso_to_scr( g_block.offset )
 					
 					DrawImage( spritelib_blocks[ LIB_BLOCKS, g_block.isotype ], scr.x, scr.y )
@@ -311,7 +331,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 					Else
 						
 						SetColor( g_block.red, g_block.green, g_block.blue )
-						SetAlpha( g_block.alpha )
+						'SetAlpha( g_block.alpha )
 						scr = iso_to_scr( g_block.offset )
 						
 						DrawImage( spritelib_blocks[ LIB_BLOCKS, g_block.isotype ], scr.x, scr.y )
@@ -422,11 +442,12 @@ Function draw_subgrid( subgrid:iso_grid, position:scr_coord, scale# )
 	Local final_y#
 	
 	SetScale( scale, scale )
+	SetAlpha( 1.000 )
 	
 	For Local iter:iso_block = EachIn subgrid.blocklist
 		
 		SetColor( iter.red, iter.green, iter.blue )
-		SetAlpha( iter.alpha )
+		'SetAlpha( iter.alpha )
 		scr = iso_to_scr( iter.offset )
 		final_x = scale * Float( scr.x ) + Float( position.x )
 		final_y = scale * Float( scr.y ) + Float( position.y )

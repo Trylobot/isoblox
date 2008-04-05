@@ -47,9 +47,6 @@ Type controller
 	Field intro_messages$[]    'splash messages
 	Field mouse:scr_coord      'last recorded mouse coordinates
 	
-	Field REDRAW_BG            'background validity indicator
-	Field bg_cache:TImage      'background image cached texture
-	
 	Field canvas:iso_grid      'root-level isometric grid
 	Field cursor:iso_cursor    'root-level isometric cursor
 	Field status:message_nanny 'status message handler
@@ -62,7 +59,14 @@ Type controller
 	Field SHOW_STATUS_MESSAGES 'drawing layer flag
 	Field SHOW_HELP            'drawing layer flag
 
-'_________________________________________________________________________
+	Field REDRAW_BG            'background validity indicator
+	Field bg_cache:TImage      'background image cached texture
+	
+	Field hover_block_offset:iso_coord
+	Field HOVER_FLAG
+	
+
+	'_________________________________________________________________________
 	Method New()
 		
 		seconds = CreateTimer( 1 )
@@ -77,9 +81,7 @@ Type controller
 			iso_coord.Create( GRID_X, GRID_Y, GRID_Z ))
 		cursor = New iso_cursor
 		
-		REDRAW_BG = True
-		
-		cursor.offset = iso_coord.Create( canvas.size.x / 2, grid.size.y / 2, 0 )
+		cursor.offset = iso_coord.Create( canvas.size.x / 2, canvas.size.y / 2, 0 )
 		cursor.select_ghost.resize( iso_coord.Create( 1, 1, 1 ))
 		status = New message_nanny
 		
@@ -91,9 +93,12 @@ Type controller
 		SHOW_STATUS_MESSAGES = True
 		SHOW_HELP            = False
 		
+		REDRAW_BG = True
+		HOVER_FLAG = False
+		
 	EndMethod
 	
-'_________________________________________________________________________
+	'_________________________________________________________________________
 	Method load_assets()
 		
 		status.append( "loading assets .." )
@@ -105,10 +110,10 @@ Type controller
 		
 	EndMethod
 	
-'_________________________________________________________________________
+	'_________________________________________________________________________
 	Method chug()
 		
-		keyboard_input()
+		get_input()
 		draw()
 		
 		'DRAW_DEBUG_INFORMATION()
@@ -127,7 +132,7 @@ Type controller
 	EndMethod
 	
 	Rem
-'_________________________________________________________________________
+	'_________________________________________________________________________
 	Method DRAW_DEBUG_INFORMATION()
 		
 		SetOrigin( 0, 0 )
@@ -138,7 +143,7 @@ Type controller
 	EndMethod
 	EndRem
 	
-'_________________________________________________________________________
+	'_________________________________________________________________________
 	Method draw()
 
 		SetOrigin( ORIGIN_X, ORIGIN_Y )
@@ -154,7 +159,7 @@ Type controller
 				SetAlpha( 1.000 )
 				DrawImage( bg_cache, 0, 0 )
 			Else
-				draw_gridlines( grid )
+				draw_gridlines( canvas )
 				bg_cache = LoadImage( GrabPixmap( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT ))
 				SetImageHandle( bg_cache, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 )
 				REDRAW_BG = False
@@ -162,7 +167,7 @@ Type controller
 		EndIf
 		
 		If SHOW_SHADOWS And SHOW_BLOCKS
-			draw_block_shadows( grid )
+			draw_block_shadows( canvas )
 			If SHOW_CURSOR
 				draw_cursor_shadows( cursor )
 			EndIf
@@ -171,21 +176,25 @@ Type controller
 		Rem
 		'This bit has been disabled for now
 		If SHOW_OUTLINES
-			draw_outlines( grid, cursor )
+			draw_outlines( canvas, cursor )
 		EndIf
 		EndRem
 		
 		If SHOW_BLOCKS
 			
 			If Not SHOW_CURSOR
-				draw_blocks( grid )
+				draw_blocks( canvas )
 			Else 'SHOW_CURSOR
-				If Not grid.empty()
-					draw_blocks_with_cursor( grid, cursor )
-				Else 'grid.empty()
+				If Not canvas.empty()
+					draw_blocks_with_cursor( canvas, cursor )
+				Else 'canvas.empty()
 					draw_cursor( cursor )
 				EndIf
 				draw_cursor_wireframe( cursor )
+			EndIf
+			
+			If HOVER_FLAG
+				draw_hover_block( hover_block_offset )
 			EndIf
 			
 		EndIf
@@ -200,8 +209,8 @@ Type controller
 		
 	EndMethod
 	
-'_________________________________________________________________________
-	Method keyboard_input()
+	'_________________________________________________________________________
+	Method get_input()
 		
 		Local patience = False
 		If program_timer_ticks < program_timer.Ticks()
@@ -218,31 +227,36 @@ Type controller
 		mouse.x = MouseX()
 		mouse.y = MouseY()
 		
+		'________________________________
+		'HOVERING WITH MOUSE OVER A BLOCK
+		hover_block_offset = scr_to_iso_HACK( mouse, canvas.renderlist )
+		HOVER_FLAG = hover_block_offset.is_valid()
+		
 		'__________________________
 		'SAVING ENTIRE GRID TO FILE
 		If KeyHit( Key_F2 )
-			command_grid_save( status, grid )
+			command_grid_save( status, canvas )
 
 		'______________________________
 		'LOADING CURSOR BRUSH FROM FILE
 		ElseIf KeyHit( Key_F3 )
-			command_brush_load( status, grid, cursor )
+			command_brush_load( status, canvas, cursor )
 			
 		'_____________________________
 		'LOADING ENTIRE GRID FROM FILE
 		ElseIf KeyHit( Key_F4 )
-			command_grid_load( status, grid, cursor )
+			command_grid_load( status, canvas, cursor )
 			
 		'_______________________
 		'COPY SELECTION TO BRUSH (only while select tool is active)
 		ElseIf KeyHit( Key_F5 ) And cursor.mode = CURSOR_SELECT
-			command_copy( status, grid, cursor )
+			command_copy( status, canvas, cursor )
 		
 		Rem
 		'_____________________
 		'SELECTING ENTIRE GRID
 		ElseIf KeyHit( Key_F8 )
-			command_select_all( status, grid, cursor )			
+			command_select_all( status, canvas, cursor )			
 		EndRem
 		
 		EndIf
@@ -258,13 +272,13 @@ Type controller
 		'_________________________
 		'INSERTING CURSOR CONTENTS
 		If KeyHit( Key_Space )
-			command_insert( status, grid, cursor )
+			command_insert( status, canvas, cursor )
 		EndIf
 			
 		'________________________
 		'DELETING CURSOR CONTENTS
 		If KeyHit( Key_Tilde )
-			command_delete( grid, cursor )
+			command_delete( canvas, cursor )
 		EndIf
 		
 		If patience 
@@ -275,7 +289,7 @@ Type controller
 				(KeyDown( Key_LShift ) Or KeyDown( Key_RShift ) Or KeyDown( Key_LControl ) Or KeyDown( Key_RControl )) ..
 				And ..
 				(KeyDown( Key_A ) Or KeyDown( Key_D ) Or KeyDown( Key_W ) Or KeyDown( Key_S ) Or KeyDown( Key_E ) Or KeyDown( Key_Q ))
-				command_move_cursor( status, grid, cursor, 	iso_coord.Create( ..
+				command_move_cursor( status, canvas, cursor, 	iso_coord.Create( ..
 					-KeyDown( Key_A )+KeyDown( Key_D ), ..
 					-KeyDown( Key_W )+KeyDown( Key_S ), ..
 					-KeyDown( Key_E )+KeyDown( Key_Q )))
@@ -361,7 +375,7 @@ Type controller
 				
 				If Not new_size.equal( cursor.select_ghost.size )
 					cursor.select_ghost.resize( new_size )
-					command_expand_grid_for_cursor( grid, cursor )
+					command_expand_grid_for_cursor( canvas, cursor )
 				EndIf
 		
 			EndIf
@@ -370,7 +384,7 @@ Type controller
 		'RESIZING THE GRID
 			If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )
 				
-				Local new_size:iso_coord = grid.size.copy()
+				Local new_size:iso_coord = canvas.size.copy()
 				
 				If KeyDown( Key_A ) And new_size.x > 0
 					new_size.x :- 1
@@ -390,9 +404,9 @@ Type controller
 					new_size.z :+ 1
 				EndIf
 				
-				If Not new_size.equal( grid.size )
-					grid.resize( new_size )
-					command_expand_grid_for_cursor( grid, cursor )
+				If Not new_size.equal( canvas.size )
+					canvas.resize( new_size )
+					command_expand_grid_for_cursor( canvas, cursor )
 					REDRAW_BG = True
 				EndIf
 		
@@ -404,17 +418,17 @@ Type controller
 		'CHANGING THE CURSOR MODE
 		If KeyHit( Key_Z )
 			cursor.mode = CURSOR_BASIC
-			command_expand_grid_for_cursor( grid, cursor )
+			command_expand_grid_for_cursor( canvas, cursor )
 		ElseIf KeyHit( Key_X )
-			If cursor.brush_grid.empty()
+			If cursor.brush.empty()
 				status.append( "$ywarning; cannot use brush tool $D(must load a brush first)" )
 			Else	
 				cursor.mode = CURSOR_BRUSH
-				command_expand_grid_for_cursor( grid, cursor )
+				command_expand_grid_for_cursor( canvas, cursor )
 			EndIf
 		ElseIf KeyHit( Key_C )
 			cursor.mode = CURSOR_SELECT
-			command_expand_grid_for_cursor( grid, cursor )
+			command_expand_grid_for_cursor( canvas, cursor )
 		EndIf
 		
 		'_________________
@@ -488,7 +502,7 @@ Type controller
 			
 	EndMethod
 
-'_________________________________________________________________________
+	'_________________________________________________________________________
 	Function draw_help()
 		
 		SetOrigin( 0, 0 )

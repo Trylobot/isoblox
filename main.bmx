@@ -42,7 +42,7 @@ Local isoblox:controller = New controller
 isoblox.load_assets()
 
 'main program loop
-While Not AppTerminate()	And Not KeyDown( Key_Escape )
+While Not AppTerminate() And Not KeyDown( Key_Escape )
 	
 	isoblox.chug   'process one frame of input and drawing
 	Flip(1)        'flip backbuffer to screen after vertical sync

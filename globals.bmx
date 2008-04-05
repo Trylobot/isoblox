@@ -335,9 +335,9 @@ Function initialize_rotation_map()
 			Local inverse_operation = operation - 3
 			
 			rotation_map[ operation, isotype ] = ..
-				rotate( inverse_operation, ..
-				rotate( inverse_operation, ..
-				rotate( inverse_operation, isotype )))
+				rotation_map[ inverse_operation, ..
+					rotation_map[ inverse_operation, ..
+						rotation_map[ inverse_operation, isotype ]]]
 			
 		Next
 	Next

@@ -212,13 +212,13 @@ Function fileman_grid_save_explicit( file$, grid:iso_grid )
 	WriteLine( file_out, "; data format:" )
 	WriteLine( file_out, ";  size = <x> <y> <z>" )
 	WriteLine( file_out, ";         |grid dims|" )
-	WriteLine( file_out, ";  iso_block = <isotype>,<x> <y> <z>,<red> <green> <blue>,<alpha>" )
-	WriteLine( file_out, ";              |index..|,|position.|,|color channels....|,|alpha|" )
+	WriteLine( file_out, ";  iso_block = <isotype>,<x> <y> <z>,<red> <green> <blue>" )
+	WriteLine( file_out, ";              |index__|,|position_|,|color components__|" )
 	WriteLine( file_out, "" )
 	WriteLine( file_out, "[iso_grid]" )
 	WriteLine( file_out, " size = "+grid.size.x+" "+grid.size.y+" "+grid.size.z )
-	For Local iter:iso_block = EachIn grid.blocklist
-		WriteLine( file_out, "  iso_block = "+iter.isotype+","+iter.offset.x+" "+iter.offset.y+" "+iter.offset.z+","+iter.red+" "+iter.green+" "+iter.blue+","+iter.alpha )
+	For Local iter:iso_block = EachIn grid.renderlist
+		WriteLine( file_out, "  iso_block = "+iter.isotype+","+iter.offset.x+" "+iter.offset.y+" "+iter.offset.z+","+iter.red+" "+iter.green+" "+iter.blue )
 	Next
 	
 	CloseStream( file_out )
@@ -251,8 +251,8 @@ Function fileman_grid_load_explicit( file$, grid:iso_grid )
 		
 	EndIf
 	
-	Local size:iso_coord = iso_coord.invalid()
-	Local blocklist:TList = CreateList()
+	Local new_size:iso_coord = New iso_coord
+	Local new_grid:iso_grid = New iso_grid
 	
 	Local line_number = 0
 	Local found_title = False
@@ -286,15 +286,18 @@ Function fileman_grid_load_explicit( file$, grid:iso_grid )
 			
 			If line.find( "size" ) >= 0
 	
-				line = line[(line.find( "=" ) + 1)..];	size.x = line.ToInt()			
-				line = line[(line.find( " " ) + 1)..];	size.y = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	size.z = line.ToInt()
+				line = line[(line.find( "=" ) + 1)..];	new_size.x = line.ToInt()			
+				line = line[(line.find( " " ) + 1)..];	new_size.y = line.ToInt()
+				line = line[(line.find( " " ) + 1)..];	new_size.z = line.ToInt()
 				
-				If Not size.is_invalid() Then found_size = True
+				If Not new_size.is_invalid()
+					found_size = True
+					new_grid.resize( new_size )
+				EndIf
 				
 			ElseIf line.find( "iso_block" ) >= 0 And found_size
 				
-				Local fresh_block:iso_block = iso_block.invalid()
+				Local fresh_block:iso_block = New iso_block 'iso_block.invalid()
 				
 				line = line[(line.find( "=" ) + 1)..];	fresh_block.isotype = line.ToInt()
 				line = line[(line.find( "," ) + 1)..];	fresh_block.offset.x = line.ToInt()
@@ -303,9 +306,10 @@ Function fileman_grid_load_explicit( file$, grid:iso_grid )
 				line = line[(line.find( "," ) + 1)..];	fresh_block.red = line.ToInt()
 				line = line[(line.find( " " ) + 1)..];	fresh_block.green = line.ToInt()
 				line = line[(line.find( " " ) + 1)..];	fresh_block.blue = line.ToInt()
-				line = line[(line.find( "," ) + 1)..];	fresh_block.alpha = line.ToFloat()
 	
-				If Not fresh_block.is_invalid() Then blocklist.AddLast( fresh_block )
+				If Not fresh_block.is_invalid()
+					new_grid.insert_block( fresh_block )
+				EndIf
 				
 			Else
 				
@@ -326,9 +330,6 @@ Function fileman_grid_load_explicit( file$, grid:iso_grid )
 	Else
 		
 		'success!
-		grid.set( size, blocklist )		
-		CloseStream( file_in )
-		
 		Return True
 		
 	EndIf

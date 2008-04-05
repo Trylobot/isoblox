@@ -11,6 +11,8 @@ Rem
 TODO
 - optimize copy_volume() using backref+renderlist to skip the empty parts of the selected volume,
   and to dump out early when blocks start appearing outside the selected volume.
+- the above optimization would also allow me to forgo the Sort() at the bottom, just before the return.
+- also optimize delete_volume() in the same way
 EndRem
 
 Strict
@@ -48,45 +50,59 @@ Type iso_grid
 		Return new_space
 	EndFunction
 	
+	'Assign___________________________________________________________________
+	'important note: this method assigns "by reference"
+	Method assign( source:iso_grid )
+		size = source.size
+		filled = source.filled
+		space = source.space
+		renderlist = source.renderlist
+		backref = source.backref
+		block_count = source.block_count
+	EndMethod
+	
   'Is Empty_________________________________________________________________
 	Method is_empty()
 		Return block_count
 	EndMethod
 	
   'Internal Retrieval (set of 3)____________________________________________
-	Method space_at:iso_block( v:iso_coord )
+	Method get_space:iso_block( v:iso_coord )
 		Return space[ v.x, v.y, v.z ]
 	EndMethod
-	Method filled_at:Int( v:iso_coord )
+	Method get_filled:Int( v:iso_coord )
 		Return filled[ v.x, v.y, v.z ]
 	EndMethod
-	Method backref_at:TLink( v:iso_coord )
+	Method get_backref:TLink( v:iso_coord )
 		Return backref[ v.x, v.y, v.z ]
 	EndMethod
 	
-  'Generalized Retrieval (set of 3)_______________________________________
-	Function space_at_in:iso_block( space:iso_block[,,], v:iso_coord )
-		Return space[ v.x, v.y, v.z ]
-	EndFunction 
-	Function filled_at_in:Int( filled:Int[,,], v:iso_coord )
-		Return filled[ v.x, v.y, v.z ]
-	EndFunction 
-	Function backref_at_in:TLink( backref:TLink[,,], v:iso_coord )
-		Return backref[ v.x, v.y, v.z ]
-	EndFunction 
-		
+	'Internal Assignment (set of 3)__________________________________________
+	Method set_space( v:iso_coord, new_block:iso_block )
+		space[ v.x, v.y, v.z ] = new_block
+	EndMethod
+	Method set_filled( v:iso_coord, new_fill_value% )
+		filled[ v.x, v.y, v.z ] = new_fill_value
+	EndMethod
+	Method set_backref( v:iso_coord, new_link:TLink )
+		backref[ v.x, v.y, v.z ] = new_link
+	EndMethod
+	
   'Insert Block_____________________________________________________________
 	'Should this method have a selector for over-write?
 	'for now it will insert a new block at a location, or over-write existing.
 	'the location for the insert must be provided inside the object's [offset] field
 	Method insert_block( new_block_raw:iso_block )
 		If new_block_raw.offset.in_bounds( size )
-			
 			Local new_block:iso_block = new_block_raw.copy()
 			
-			'trivial, empty list case
-			If renderlist.IsEmpty()
-				Return renderlist.AddFirst( new_block )
+			'trivial, empty grid case
+			If is_empty()
+				block_count :+ 1
+				set_filled( new_block.offset, True )
+				set_space( new_block.offset, new_block )
+				set_backref( new_block.offset, renderlist.AddFirst( new_block ))
+				Return
 			EndIf		
 			
 			Local main_cursor:TLink = renderlist.FirstLink()
@@ -96,38 +112,29 @@ Type iso_grid
 			'traverse the renderlist and insert the new block wherever it's supposed to go
 			While main_cursor <> Null
 				main_block = iso_block( main_cursor.Value() )
-				
 				cmp = main_block.compare( new_block )
-				
 				If cmp < 0
-					
-					If Not filled_at( new_block.offset )
+					If Not get_filled( new_block.offset )
 						block_count :+ 1
 					EndIf
-					
-					filled_at( new_block.offset ) = True
-					space_at( new_block.offset ) = new_block
-					backref_at( new_block.offset ) = renderlist.InsertBeforeLink( new_block, main_cursor )
-					
+					set_filled( new_block.offset, True )
+					set_space( new_block.offset, new_block )
+					set_backref( new_block.offset, renderlist.InsertBeforeLink( new_block, main_cursor ))
 					Return
-					
 				ElseIf cmp = 0
-					
 					main_block.clone( new_block )
-					
 				EndIf
-				
 				main_cursor = main_cursor.NextLink()
 			EndWhile
 			
 			'just insert the block at the end
-			If Not filled_at( new_block.offset )
+			If Not get_filled( new_block.offset )
 				block_count :+ 1
 			EndIf
 			'insert
-			filled_at( new_block.offset ) = True
-			space_at( new_block.offset ) = new_block
-			backref_at( new_block.offset ) = renderlist.AddLast( new_block )
+			set_filled( new_block.offset, True )
+			set_space( new_block.offset, new_block )
+			set_backref( new_block.offset, renderlist.AddLast( new_block ))
 			
 		EndIf
 	EndMethod
@@ -140,9 +147,9 @@ Type iso_grid
 	'This method is going to be heavily re-worked and optimized, so it may not be pretty.
 	Method insert_brush( target:iso_coord, brush:iso_grid )
 		
-		If brush.is_empty() Then Return
-		
-		If is_empty()
+		If brush.is_empty()
+			Return
+		ElseIf is_empty()
 			'copy the entire brush into this iso_grid
 			
 			Return
@@ -167,29 +174,20 @@ Type iso_grid
 				new_block.offset = brush_block.offset.add( target )
 				
 				If new_block.offset.in_bounds( size )
-					
 					cmp = main_block.compare( new_block )
-					
 					If cmp < 0
-						
-						If Not filled_at( new_block.offset )
+						If Not get_filled( new_block.offset )
 							block_count :+ 1
 						EndIf
-						
-						filled_at( new_block.offset ) = True
-						space_at( new_block.offset ) = new_block
-						backref_at( new_block.offset ) = renderlist.InsertBeforeLink( new_block, main_cursor )
-						
+						set_filled( new_block.offset, True )
+						set_space( new_block.offset, new_block )
+						set_backref( new_block.offset, renderlist.InsertBeforeLink( new_block, main_cursor ))
 					ElseIf cmp = 0
-						
-						space_at( new_offset ).clone( new_block )
-						
+						get_space( new_block.offset ).clone( new_block )
 					Else
-						
-						Exit While
-						
+						'dump out early for efficiency
+						Exit
 					EndIf
-					
 				EndIf
 				
 				brush_cursor = brush_cursor.NextLink()
@@ -206,12 +204,10 @@ Type iso_grid
 				new_block.offset = brush_block.offset.add( target )
 				
 				If new_block.offset.in_bounds( size )
-					
 					block_count :+ 1
-					filled_at( new_block.offset ) = True
-					space_at( new_block.offset ) = new_block
-					backref_at( new_block.offset ) = renderlist.AddLast( new_block )
-					
+					set_filled( new_block.offset, True )
+					set_space( new_block.offset, new_block )
+					set_backref( new_block.offset, renderlist.AddLast( new_block ))
 				EndIf
 				
 			brush_cursor = brush_cursor.NextLink()
@@ -228,15 +224,16 @@ Type iso_grid
 		'This method is similar to a "quick format" for a hard drive. The renderlist is like a file table.
 		'I simply stop keeping track of a block; later on, if a new block comes to take up that space, I simply
 		'replace it.
-		If target.in_bounds( size ) And filled_at( target )
-			backref_at( target ).Remove()
-			'space_at( target ) = ? (old block data retained)
-			filled_at( target ) = False
+		If target.in_bounds( size ) And get_filled( target )
+			get_backref( target ).Remove()
+			'set_space( target, ? )
+			set_filled( target, False )
 			block_count :- 1
 		EndIf
 	EndMethod
 	
 	'Delete Volume____________________________________________________________
+	'this method could be optimized, using backref (to skip the whitespaces)
 	Method delete_volume( target:iso_coord, target_size:iso_coord )
 		
 		Local cursor:iso_coord = New iso_coord
@@ -261,10 +258,10 @@ Type iso_grid
 		For cursor.z = constrained_target.z To constrained_target_size.z - 1
 			For cursor.y = constrained_target.y To constrained_target_size.y - 1
 				For cursor.x = constrained_target.x To constrained_target_size.x - 1
-					If filled_at( cursor )
-						backref_at( cursor ).Remove()
-						'space_at( cursor ) = ? (old block data retained)
-						filled_at( cursor ) = False
+					If get_filled( cursor )
+						get_backref( cursor ).Remove()
+						'set_space( cursor, ? )
+						set_filled( cursor, False )
 						block_count :- 1
 					EndIf
 				Next
@@ -274,15 +271,15 @@ Type iso_grid
 	EndMethod
 	
   'Copy Volume______________________________________________________________
-	'This method could be optimized a tad, using backref
+	'This method can be further optimized, using backref; would allow skipping of whitespace
 	Method copy_volume:iso_grid( target:iso_coord, target_size:iso_coord )
 		
 		Local brush:iso_grid = New iso_grid
 		brush.resize( target_size )
 		Local cursor:iso_coord = New iso_coord
-		Local brush_offset:iso_coord = New iso_coord
+		Local new_block:iso_block
 		
-		'constrain volume to only "in_bounds" targets (for efficiency)
+		'constrain volume to only "in_bounds" targets (for loop efficiency)
 		Local constrained_target:iso_coord = target.copy()
 		Local constrained_target_size:iso_coord = target_size.copy()
 		If constrained_target.x < 0 Then ..
@@ -299,23 +296,28 @@ Type iso_grid
 			constrained_target_size.z = size.z - constrained_target.z
 		
 		'loop through the constrained volume, copying blocks into the brush
+		'note; if I could do this in the correct order, I wouldn't need to Sort() afterward!
 		For cursor.z = constrained_target.z To constrained_target_size.z - 1
 			For cursor.y = constrained_target.y To constrained_target_size.y - 1
 				For cursor.x = constrained_target.x To constrained_target_size.x - 1
 					'if this grid contains a block
-					If filled_at( cursor )
+					If get_filled( cursor )
+						'make a copy
+						new_block = get_space( cursor ).copy()
 						'translate the cursor offset into local brush space
-						brush_offset = cursor.sub( constrained_target )
+						new_block.offset = cursor.sub( constrained_target )
 						'insert a copy of this block into the brush grid
 						brush.block_count :+ 1
-						brush.filled_at( brush_offset ) = True
-						brush.space_at( brush_offset ) = space_at( cursor ).copy()
-						brush.space_at( brush_offset ).offset = brush_offset
-						brush.backref_at( brush_offset ) = brush.renderlist_insert( brush.space_at( brush_offset ))
+						brush.set_filled( new_block.offset, True )
+						brush.set_space( new_block.offset, new_block )
+						brush.set_backref( new_block.offset, brush.renderlist.AddLast( new_block ))
 					EndIf
 				Next
 			Next
 		Next
+		
+		'unfortunately, I necessitated the following Sort() with my above Tom-foolery.
+		brush.renderlist.Sort()
 		
 		'return the new subgrid
 		Return brush
@@ -332,31 +334,21 @@ Type iso_grid
 		If Not new_size.is_invalid()
 			
 			'reserve space for new data
-			size = new_size.copy()
-			Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
-			Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
-			Local new_renderlist:TList = New TList
-			Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+			Local new_grid:iso_grid = create( new_size.copy() )
 			
 			'make one pass through the old renderlist
 			For Local iter:iso_block = EachIn renderlist
 				If iter.offset.in_bounds( size )
-					'this item should be kept; stick it in the new data
-					filled_at_in( new_filled, iter.offset ) = True
-					space_at_in( new_space, iter.offset ) = space_at( iter.offset )
-					backref_at_in( new_backref, iter.offset ) = ..
-						new_renderlist.AddLast( iter )
-				Else
-					'block falls outside the new boundary; equivalent to being deleted
-					block_count :- 1
+					'this item should be kept; stick it in the new_grid
+					new_grid.set_filled( iter.offset, True )
+					new_grid.set_space( iter.offset, get_space( iter.offset ))
+					new_grid.set_backref( iter.offset, new_grid.renderlist.AddLast( iter ))
+					new_grid.block_count :+ 1
 				EndIf
 			Next
 			
 			'point to the new data
-			filled = new_filled
-			space = new_space
-			renderlist = new_renderlist
-			backref = new_backref
+			assign( new_grid )
 			
 		EndIf
 	EndMethod
@@ -396,10 +388,7 @@ Type iso_grid
 		size = new_size
 		
 		'reserve space for new replacement data
-		Local new_filled:Int[,,] = New Int[ size.x, size.y, size.z ]
-		Local new_space:iso_block[,,] = New iso_block[ size.x, size.y, size.z ]
-		Local new_renderlist:TList = New TList
-		Local new_backref:TLink[,,] = New TLink[ size.x, size.y, size.z ]
+		Local new_grid:iso_grid = create( new_size )
 		
 		'make one pass through the old renderlist
 		Local new_block:iso_block
@@ -431,67 +420,22 @@ Type iso_grid
 					new_block.offset.y = -iter.offset.x + old_size.x
 			EndSelect
 			
-			
+			new_grid.set_filled( new_block.offset, True )
+			new_grid.set_space( new_block.offset, new_block )
+			new_grid.set_backref( new_block.offset, new_grid.renderlist.AddLast( new_block ))
 			
 		Next
 		
 		'point to the new data
-		filled = new_filled
-		space = new_space
-		renderlist = new_renderlist
-		backref = new_backref
-		
-		Rem
-		'apply rotation operation to each block in the list
-		Local curr_block:iso_block
-		For curr_block = EachIn blocklist
-			
-			'apply rotation to image
-			curr_block.isotype = rotate( operation, curr_block.isotype )
-			
-			'apply rotation to coordinates
-			curr_block.offset = curr_block.offset.sub( anchor )
-			Local new_offset:iso_coord = curr_block.offset.copy()
-			Select operation
-				Case ROTATE_X_MINUS
-					new_offset.y = -curr_block.offset.z
-					new_offset.z =  curr_block.offset.y
-				Case ROTATE_Y_MINUS
-					new_offset.x = -curr_block.offset.z
-					new_offset.z =  curr_block.offset.x
-				Case ROTATE_Z_MINUS
-					new_offset.x = -curr_block.offset.y
-					new_offset.y =  curr_block.offset.x
-				Case ROTATE_X_PLUS
-					new_offset.y =  curr_block.offset.z
-					new_offset.z = -curr_block.offset.y
-				Case ROTATE_Y_PLUS
-					new_offset.x =  curr_block.offset.z
-					new_offset.z = -curr_block.offset.x
-				Case ROTATE_Z_PLUS
-					new_offset.x =  curr_block.offset.y
-					new_offset.y = -curr_block.offset.x
-			EndSelect
-			curr_block.offset = new_offset.add( anchor )
-			
-		Next
-		
-		'sort grid
-		blocklist.Sort()
-		
-		'apply translation to entire grid
-		'translation amount is unknown until all translations have been made
-		Local delta:iso_coord = iso_coord(blocklist.First())
-		For curr_block = EachIn blocklist
-			
-			curr_block.offset = curr_block.offset.sub( delta )
-			
-		Next
-		EndRem
+		assign( new_grid )
+		'I wish the following Sort() wasn't necessary, but I just don't see a way around it.
+		'After all the rotating, the blocks are just all over the place.
+		renderlist.Sort()
 		
 	EndMethod
 	
 	Rem
+	'Calculate Bounds____________________________________________________________________________
 	Method calculate_bounds()
 		
 		bounds = New scr_coord[14]
@@ -520,7 +464,7 @@ Type iso_grid
 	Method str$()
 		Local s$ = "[iso_grid]~n"
 		Local num = 0
-		For Local iter:iso_block = EachIn blocklist
+		For Local iter:iso_block = EachIn renderlist
 			s :+ " "+num+" "+iter.str()+"~n"			
 			num :+ 1
 		Next
@@ -529,5 +473,29 @@ Type iso_grid
 	EndMethod
 
 EndType
+
+
+
+'Generalized Retrieval (set of 3)__________________________________________
+Function grid_get_space:iso_block( v:iso_coord, g:iso_grid )
+	Return g.space[ v.x, v.y, v.z ]
+EndFunction 
+Function grid_get_filled:Int( v:iso_coord, g:iso_grid )
+	Return g.filled[ v.x, v.y, v.z ]
+EndFunction 
+Function grid_get_backref:TLink( v:iso_coord, g:iso_grid )
+	Return g.backref[ v.x, v.y, v.z ]
+EndFunction 
+	
+'Generalized Assignment (set of 3)_________________________________________
+Function grid_set_space( v:iso_coord, g:iso_grid, new_block:iso_block )
+	g.space[ v.x, v.y, v.z ] = new_block
+EndFunction 
+Function grid_set_filled( v:iso_coord, g:iso_grid, new_fill_value% )
+	g.filled[ v.x, v.y, v.z ] = new_fill_value
+EndFunction 
+Function grid_set_backref( v:iso_coord, g:iso_grid, new_link:TLink )
+	g.backref[ v.x, v.y, v.z ] = new_link
+EndFunction
 
 

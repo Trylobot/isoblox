@@ -138,6 +138,10 @@ Type iso_coord
 		Return create( -1, -1, -1 )
 	EndFunction
 	
+	Method is_valid()
+		Return x >= 0 And y >= 0 And z >= 0
+	EndMethod
+	
 	Method is_invalid()
 		Return x < 0 Or y < 0 Or z < 0
 	EndMethod
