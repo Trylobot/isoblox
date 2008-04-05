@@ -25,77 +25,51 @@ Import "iso_cursor.bmx"
 Import "fileman.bmx"
 Import "message_nanny.bmx"
 
+'Move Cursor_______________________________________________________________________________________
 Function command_move_cursor( status:message_nanny, grid:iso_grid, cursor:iso_cursor, delta:iso_coord )
-		
-	If Not cursor.offset.add( delta ).is_invalid()
-		cursor.offset = cursor.offset.add( delta )
-		command_expand_grid_for_cursor( grid, cursor )
-	Else
-		
-	EndIf
-	
+	cursor.block.offset = cursor.block.offset.add( delta )
 EndFunction
 
+'Insert__________________________________________________________________________________________________
 Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
-
 	If SOUND Then PlaySound( high_click )
-	
 	Select cursor.mode
-		
 		Case CURSOR_BASIC
-			
-			Local new_block:iso_block = cursor.basic_block.copy()
-			new_block.offset = cursor.offset.copy()
-			grid.insert( new_block )
-			
+			grid.insert_block( cursor.block.copy() )
 		Case CURSOR_BRUSH
-			
 			grid.insert_subgrid( cursor.brush_grid )
-			
 	EndSelect
-
 EndFunction
 
+'Delete__________________________________________________________________________________________________
 Function command_delete( grid:iso_grid, cursor:iso_cursor )
-	
 	If SOUND Then PlaySound( low_click )
-	
 	Select cursor.mode
-	
 		Case CURSOR_BASIC
-			grid.erase_at_offset( cursor.offset )
-			
-		Case CURSOR_BRUSH
-			For Local iter:iso_block = EachIn cursor.brush_grid.blocklist
-				grid.erase_at_offset( cursor.offset.add( iter.offset ))
-			Next
-			
+			grid.delete_block( cursor.block.offset )
+		Case CURSOR_BRUSH 'deleting with the brush doesn't really make sense...
+			'grid.delete_volume( cursor.block.offset, cursor.size )
 		Case CURSOR_SELECT
-			Local hit_list:TList = grid.intersection_with_ghost( cursor.offset, cursor.select_ghost )
-			For Local iter:iso_block = EachIn hit_list
-				grid.erase_at_offset( iter.offset )
-			Next
-			
+			cursor.brush = grid.copy_volume( cursor.block.offset, cursor.size )
 	EndSelect
-	
 EndFunction
 
+'This function has been disabled, because I don't want to use it any more.
+Rem
+'Expand Grid for Cursor_____________________________________________________________________________
 Function command_expand_grid_for_cursor( grid:iso_grid, cursor:iso_cursor )
-	
 	Select cursor.mode
 		Case CURSOR_BASIC
 			grid.expand_for_subvolume( cursor.offset, iso_coord.Create( 1, 1, 1 ))
-			
 		Case CURSOR_BRUSH
 			grid.expand_for_subvolume( cursor.offset, cursor.brush_grid.size )
-			
 		Case CURSOR_SELECT
 			grid.expand_for_subvolume( cursor.offset, cursor.select_ghost.size )
-			
 	EndSelect
-	
 EndFunction
+EndRem
 
+'Save__________________________________________________________________________________________________
 Function command_grid_save( status:message_nanny, grid:iso_grid )
 
 	status.append( "saving iso_grid ..." )
@@ -105,6 +79,7 @@ Function command_grid_save( status:message_nanny, grid:iso_grid )
 
 EndFunction
 
+'Load to Brush________________________________________________________________________________________
 Function command_brush_load( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 
 	status.append( "$prequesting filename" )
@@ -123,6 +98,7 @@ Function command_brush_load( status:message_nanny, grid:iso_grid, cursor:iso_cur
 
 EndFunction
 
+'Load to Canvas_______________________________________________________________________________________
 Function command_grid_load( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 		
 	status.append( "$prequesting $Bfilename" )
@@ -139,6 +115,7 @@ Function command_grid_load( status:message_nanny, grid:iso_grid, cursor:iso_curs
 	
 EndFunction
 
+'Copy_________________________________________________________________________________________________
 Function command_copy( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 			
 	status.append( "copying selected blocks to brush" )
@@ -163,6 +140,7 @@ Function command_copy( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 			
 EndFunction
 
+'Select All________________________________________________________________________________________
 Function command_select_all( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
 	
 	cursor.mode = CURSOR_SELECT

@@ -152,7 +152,9 @@ Type controller
 		For Local phase_index = 0 To 5
 			COLOR_CYCLE[phase_index] = Sin( x - ( phase_index * ( 2 * ( Pi / 6 ))))
 		Next
-
+		
+		'This chunk has been disabled while I re-write the draw_gridlines functions
+		Rem
 		If SHOW_GRIDLINES
 			If Not REDRAW_BG
 				SetColor( 255, 255, 255 )
@@ -165,6 +167,7 @@ Type controller
 				REDRAW_BG = False
 			EndIf
 		EndIf
+		EndRem
 		
 		If SHOW_SHADOWS And SHOW_BLOCKS
 			draw_block_shadows( canvas )
@@ -173,8 +176,8 @@ Type controller
 			EndIf
 		EndIf
 		
+		'This chunk has been disabled, probably permanently
 		Rem
-		'This bit has been disabled for now
 		If SHOW_OUTLINES
 			draw_outlines( canvas, cursor )
 		EndIf

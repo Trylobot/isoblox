@@ -243,7 +243,7 @@ Function draw_cursor( cursor:iso_cursor )
 EndFunction
 
 '_________________________________________________________________________
-'optimize this, and use links (not an enumerator)
+'optimize this, and use links (not an enumerator); there is much room for improvement here ;_;
 Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
 	Local g_enum:TListEnum
@@ -264,16 +264,16 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 			
 			g_enum = grid.renderlist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
-			c_block = cursor.basic_block
+			c_block = cursor.block
 			drawn_basic_block = False
 			
 			While g_block <> Null Or Not drawn_basic_block
 				
-				If Not drawn_basic_block And (c_block.offset.value() - g_block.offset.value()) < 0
+				If Not drawn_basic_block And c_block.compare( g_block ) < 0
 					
 					SetColor( c_block.red, c_block.green, c_block.blue )
 					SetAlpha( COLOR_CYCLE[0] )
-					scr = iso_to_scr( cursor.offset.add( c_block.offset ))
+					scr = iso_to_scr( c_block.offset )
 					
 					DrawImage( spritelib_blocks[ LIB_BLOCKS, c_block.isotype ], scr.x, scr.y )
 					
@@ -301,7 +301,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 			
 			g_enum = grid.renderlist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
-			c_enum = cursor.brush_grid.blocklist.ObjectEnumerator()
+			c_enum = cursor.brush.renderlist.ObjectEnumerator()
 			
 			If c_enum.HasNext()
 				
@@ -310,22 +310,16 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 				While g_block <> Null Or c_block <> Null
 					
 					'If a cursor block is to be drawn
-					If ..
-						(c_block <> Null And g_block = Null) Or ..
-						(c_block <> Null And g_block <> Null And ..
-						(c_block.offset.value() - g_block.offset.value()) < 0)
+					If (c_block <> Null And g_block = Null) Or ..
+					   (c_block <> Null And g_block <> Null And c_block.compare( g_block ) < 0)
 								
 						SetColor( c_block.red, c_block.green, c_block.blue )
 						SetAlpha( COLOR_CYCLE[0] )
-						scr = iso_to_scr( cursor.offset.add( c_block.offset ))
+						scr = iso_to_scr( cursor.block.offset.add( c_block.offset ))
 						
 						DrawImage( spritelib_blocks[ LIB_BLOCKS, c_block.isotype ], scr.x, scr.y )
 						
-						If c_enum.HasNext()
-							c_block = iso_block( c_enum.NextObject() )
-						Else
-							c_block = Null
-						EndIf
+						c_block = iso_block( c_enum.NextObject() )
 						
 					'Else, a grid block is to be drawn
 					Else
@@ -336,11 +330,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 						
 						DrawImage( spritelib_blocks[ LIB_BLOCKS, g_block.isotype ], scr.x, scr.y )
 						
-						If g_enum.HasNext()
-							g_block = iso_block( g_enum.NextObject() )
-						Else
-							g_block = Null
-						EndIf
+						g_block = iso_block( g_enum.NextObject() )
 						
 					EndIf
 					
@@ -420,13 +410,13 @@ Function draw_cursor_wireframe( cursor:iso_cursor )
 	Select cursor.mode
 	
 		Case CURSOR_BASIC
-			c_iter = cursor.basic_block
-			scr = iso_to_scr( cursor.offset.add( c_iter.offset ))
+			c_iter = cursor.block
+			scr = iso_to_scr( c_iter.offset )
 			DrawImage( spritelib_blocks[ LIB_WIREFRAMES, c_iter.isotype ], scr.x, scr.y )
 			
 		Case CURSOR_BRUSH
-			For c_iter = EachIn cursor.brush_grid.blocklist
-				scr = iso_to_scr( cursor.offset.add( c_iter.offset ))
+			For c_iter = EachIn cursor.brush.renderlist
+				scr = iso_to_scr( cursor.block.offset.add( c_iter.offset ))
 				DrawImage( spritelib_blocks[ LIB_WIREFRAMES, c_iter.isotype ], scr.x, scr.y )
 			Next
 			
@@ -444,7 +434,7 @@ Function draw_subgrid( subgrid:iso_grid, position:scr_coord, scale# )
 	SetScale( scale, scale )
 	SetAlpha( 1.000 )
 	
-	For Local iter:iso_block = EachIn subgrid.blocklist
+	For Local iter:iso_block = EachIn subgrid.renderlist
 		
 		SetColor( iter.red, iter.green, iter.blue )
 		'SetAlpha( iter.alpha )
@@ -563,6 +553,8 @@ Function draw_string_literal( message$, scr:scr_coord )
 EndFunction
 
 '_________________________________________________________________________
+'This function and its associates need to be re-written.
+Rem
 Function draw_gridlines( grid:iso_grid )
 
 	SetColor( 0, 0, 0 )
@@ -650,3 +642,4 @@ Function draw_heavy_lines( p1:scr_coord, p2:scr_coord, p3:scr_coord, p4:scr_coor
 	DrawLine( p6.x, p6.y, p1.x, p1.y )
 	
 EndFunction
+EndRem
