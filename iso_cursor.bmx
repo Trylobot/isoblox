@@ -36,15 +36,20 @@ Type iso_cursor
 		size = New iso_coord
 		group_isotype = group_starting_index[..]
 		group = 0
-		brush = New iso_grid
 		brush_list = CreateList()
-		brush_list.AddLast( brush )
 		time = CreateTimer( 8 )
 	EndMethod
 	
 	Method add_brush( new_brush:iso_grid )
 		brush_list.AddLast( new_brush )
 		brush = new_brush
+	EndMethod
+	
+	Method change_size( delta:iso_coord )
+		Local new_size:iso_coord = size.add( delta )
+		If new_size.x >= 2 And new_size.y >= 2 And new_size.z >= 2
+			size = new_size
+		EndIf
 	EndMethod
 	
 EndType

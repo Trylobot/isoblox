@@ -114,6 +114,10 @@ Type iso_coord
 		x = nx; y = ny; z = nz
 	EndMethod
 	
+	Method clone( v:iso_coord )
+		x = v.x; y = v.y; z = v.z
+	EndMethod
+	
 	Method copy:iso_coord()
 		Return create( x, y, z )
 	EndMethod

@@ -202,7 +202,7 @@ Type controller
 			EndIf
 			
 			If HOVER_FLAG
-				draw_hover_block( hover_block_offset )
+				draw_hover_block( canvas, hover_block_offset )
 			EndIf
 			
 		EndIf
@@ -357,39 +357,23 @@ Type controller
 				EndIf
 			EndIf
 		
-		'Resizing incrementally of any grid has been disabled due to massive cost of operation
-		Rem
 		'_____________________________
 		'RESIZING THE CURSOR SELECTION
 			If cursor.mode = CURSOR_SELECT And (KeyDown( Key_LShift ) Or KeyDown( Key_RShift ))
 				
-				Local new_size:iso_coord = cursor.size.copy()
-				
-				If KeyDown( Key_A ) And new_size.x > 0
-					new_size.x :- 1
-				ElseIf KeyDown( Key_D )
-					new_size.x :+ 1
-				EndIf
-				
-				If KeyDown( Key_W ) And new_size.y > 0
-					new_size.y :- 1
-				ElseIf KeyDown( Key_S )
-					new_size.y :+ 1
-				EndIf
-				
-				If KeyDown( Key_E ) And new_size.z > 0
-					new_size.z :- 1
-				ElseIf KeyDown( Key_Q )
-					new_size.z :+ 1
-				EndIf
-				
-				If Not new_size.equal( cursor.select_ghost.size )
-					cursor.select_ghost.resize( new_size )
-					command_expand_grid_for_cursor( canvas, cursor )
-				EndIf
+				Local delta:iso_coord = New iso_coord
+				If KeyDown( Key_A ) Then delta.x :- 1
+				If KeyDown( Key_D ) Then delta.x :+ 1
+				If KeyDown( Key_W ) Then delta.y :- 1
+				If KeyDown( Key_S ) Then delta.y :+ 1
+				If KeyDown( Key_Q ) Then delta.z :- 1
+				If KeyDown( Key_E ) Then delta.z :+ 1
+				cursor.change_size( delta )
 		
 			EndIf
 			
+			'Resizing incrementally of the main grid has been disabled due to massive cost of the operation
+			Rem
 		'_________________
 		'RESIZING THE GRID
 			If KeyDown( Key_LControl ) Or KeyDown( Key_RControl )

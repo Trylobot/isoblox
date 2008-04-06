@@ -33,29 +33,29 @@ Type iso_grid
 	
   'New______________________________________________________________________
 	Method New()
-		'reserve smallest amount of memory possible for a new iso_grid object
-		size = iso_coord.create( 1, 1, 1 )
-		filled = New Int[ 1, 1, 1 ]
-		space = New iso_block[ 1, 1, 1 ]
-		renderlist = New TList
-		backref = New TLink[ 1, 1, 1 ]
-		block_count = 0
+		'this method really shouldn't be called directly, as it does not return a grid ready for use.
+		size = iso_coord.create( -1, -1, -1 )
+		block_count = -1
 	EndMethod
 	
   'Create___________________________________________________________________
 	Function create:iso_grid( initial_size:iso_coord )
-		'return a new, blank iso_grid of given initial size
-		Local new_space:iso_grid = New iso_grid
-		new_space.resize( initial_size )
-		Return new_space
+		Local new_grid:iso_grid = New iso_grid
+		new_grid.size = initial_size.copy()
+		new_grid.space = New iso_block[ new_grid.size.x, new_grid.size.y, new_grid.size.z ]
+		new_grid.filled = New Int[ new_grid.size.x, new_grid.size.y, new_grid.size.z ]
+		new_grid.renderlist = CreateList()
+		new_grid.backref = New TLink[ new_grid.size.x, new_grid.size.y, new_grid.size.z ]
+		new_grid.block_count = 0
+		Return new_grid
 	EndFunction
 	
 	'Assign___________________________________________________________________
 	'important note: this method assigns "by reference"
 	Method assign( source:iso_grid )
 		size = source.size
-		filled = source.filled
 		space = source.space
+		filled = source.filled
 		renderlist = source.renderlist
 		backref = source.backref
 		block_count = source.block_count
@@ -98,6 +98,7 @@ Type iso_grid
 			
 			'trivial, empty grid case
 			If is_empty()
+				'insert the block immediately and return
 				block_count :+ 1
 				set_filled( new_block.offset, True )
 				set_space( new_block.offset, new_block )

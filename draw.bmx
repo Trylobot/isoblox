@@ -31,20 +31,18 @@ Import "iso_block.bmx"
 Import "iso_grid.bmx"
 Import "iso_cursor.bmx"
 
-'_________________________________________________________________________
-Function draw_hover_block( offset:iso_coord )
-	
-	Local scr:scr_coord
-	Local iter:iso_block
-	SetColor( 0, 0, 0 )
-	SetAlpha( 1.000 )
-	
-	scr = iso_to_scr( iter.offset )
-	DrawImage( spritelib_blocks[ LIB_OUTLINES, iter.isotype ], scr.x, scr.y )
-	
-	SetColor( iter.red, iter.green, iter.blue )
-	DrawImage( spritelib_blocks[ LIB_BLOCKS, iter.isotype ], scr.x, scr.y )
-	
+'Draw Block________________________________________________________________________________________
+Function draw_block( source:iso_block, position:scr_coord, sprite_library% )
+	SetColor( source.red, source.green, source.blue )
+	'SetAlpha( source.alpha )
+	DrawImage( spritelib_blocks[ sprite_library, source.isotype ], position.x, position.y )
+EndFunction
+
+'Draw Hover Block__________________________________________________________________________________
+Function draw_hover_block( grid:iso_grid, offset:iso_coord )
+	Local position:scr_coord = iso_to_scr( offset )
+	draw_block( grid.get_space( offset ), position, LIB_OUTLINES )
+	draw_block( grid.get_space( offset ), position, LIB_BLOCKS )
 EndFunction
 
 '_________________________________________________________________________
@@ -242,10 +240,69 @@ Function draw_cursor( cursor:iso_cursor )
 	
 EndFunction
 
-'_________________________________________________________________________
-'optimize this, and use links (not an enumerator); there is much room for improvement here ;_;
+'Draw Blocks With Cursor___________________________________________________________________________
 Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
+	Local main_cursor:TLink
+	Local main_block:iso_block
+	Local brush_cursor:TLink
+	Local brush_block:iso_block
+	Local comparison%
+	
+	Select cursor.mode
+		
+		'__________________________________________________________
+		Case CURSOR_BASIC
+			
+			'trivial, empty grid case
+			If grid.is_empty()
+				'draw the cursor block and then return
+				draw_block( cursor.block, iso_to_scr( cursor.block.offset ), LIB_BLOCKS )
+				Return
+			EndIf
+			
+			'draw blocks BEHIND the cursor
+			main_cursor = grid.renderlist.FirstLink()
+			While main_cursor <> Null
+				main_block = iso_block( main_cursor.Value() )
+				comparison = main_block.compare( cursor.block )
+				If comparison < 0
+					draw_block( main_block, iso_to_scr( main_block.offset ), LIB_BLOCKS )
+				Else 'comparison >= 0
+					Exit 'done with the loop
+				EndIf
+				main_cursor = main_cursor.NextLink()
+			EndWhile
+			'draw the cursor
+			draw_block( cursor.block, iso_to_scr( cursor.block.offset ), LIB_BLOCKS )
+			'draw blocks IN FRONT OF the cursor
+			While main_cursor <> Null
+				main_block = iso_block( main_cursor.Value() )
+				comparison = main_block.compare( cursor.block )
+				If comparison > 0
+					draw_block( main_block, iso_to_scr( main_block.offset ), LIB_BLOCKS )
+				Else 'comparison <= 0
+					Exit 'done with the loop, and this function
+				EndIf
+				main_cursor = main_cursor.NextLink()
+			EndWhile
+			'done
+			Return
+					
+		'__________________________________________________________
+		Case CURSOR_BRUSH
+			If cursor.brush <> Null Then brush_cursor = cursor.brush.renderlist.FirstLink()
+			
+			
+			
+		'__________________________________________________________
+		Case CURSOR_SELECT
+			
+			
+	EndSelect
+	
+	'This code needs a refresh, so I'm just dumping it and starting over
+	Rem
 	Local g_enum:TListEnum
 	Local g_block:iso_block
 	
@@ -256,7 +313,7 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	Local scr:scr_coord
 	Local drawn_basic_block
 	
-	SetAlpha( 1.000 )
+	'SetAlpha( 1.000 )
 	
 	Select cursor.mode
 	
@@ -344,8 +401,6 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 			
 		Case CURSOR_SELECT
 			
-			Rem
-			
 			g_enum = grid.blocklist.ObjectEnumerator()
 			g_block = iso_block( g_enum.NextObject() )
 			c_enum = cursor.select_ghost.facelist.ObjectEnumerator()
@@ -392,9 +447,8 @@ Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 				
 			EndWhile
 			
-			EndRem
-			
 	EndSelect
+	EndRem
 	
 EndFunction
 
