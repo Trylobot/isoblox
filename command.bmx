@@ -32,13 +32,14 @@ EndFunction
 
 'Insert__________________________________________________________________________________________________
 Function command_insert( status:message_nanny, grid:iso_grid, cursor:iso_cursor )
-	If SOUND Then PlaySound( high_click )
+	Local success = False
 	Select cursor.mode
 		Case CURSOR_BASIC
-			grid.insert_block( cursor.block )
+			success = grid.insert_block( cursor.block )
 		Case CURSOR_BRUSH
-			grid.insert_brush( cursor.block.offset, cursor.brush )
+			success = grid.insert_brush( cursor.block.offset, cursor.brush )
 	EndSelect
+	If SOUND And success Then PlaySound( high_click )
 EndFunction
 
 'Delete__________________________________________________________________________________________________

@@ -28,8 +28,6 @@ Import "iso_grid.bmx"
 Function fileman_load_art()
 	
 	spritelib_blocks_map = LoadPixmapPNG( "incbin::art/spritelib_blocks.png" )
-	spritelib_faces_map = LoadPixmapPNG( "incbin::art/spritelib_faces.png" )
-	spritelib_font_map = LoadPixmapPNG( "incbin::art/spritelib_font.png" )
 	AutoImageFlags( FILTEREDIMAGE | MIPMAPPEDIMAGE )
 	
 	For Local library = 0 To (COUNT_LIBS - 1)
@@ -40,6 +38,8 @@ Function fileman_load_art()
 			
 		Next
 	Next
+	
+	spritelib_faces_map = LoadPixmapPNG( "incbin::art/spritelib_faces.png" )
 	For Local face_library = 0 To (COUNT_FACE_LIBS - 1)
 		For Local facetype = 0 To (COUNT_FACES - 1)
 			
@@ -48,12 +48,21 @@ Function fileman_load_art()
 			
 		Next
 	Next
+	
+	font_consolas = LoadImageFont( "incbin::art/consolas.ttf", 10 )
+	SetImageFont( font_consolas )
+	CHAR_HEIGHT = TextHeight( "m" ) - 4
+	CHAR_WIDTH = TextWidth( "m" )
+	
+	Rem
+	spritelib_font_map = LoadPixmapPNG( "incbin::art/spritelib_font.png" )
 	For Local index = 0 To 95
 		
 		spritelib_font[ index ] = LoadImage( spritelib_font_map.Window( index * 8, 0, 8, 8 ))
 		SetImageHandle( spritelib_font[ index ], 0, 0 )
 		
 	Next
+	EndRem
 		
 EndFunction
 

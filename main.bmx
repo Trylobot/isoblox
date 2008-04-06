@@ -21,7 +21,8 @@ Import "windows32.bmx"
 ?
 Incbin "art/spritelib_blocks.png"
 Incbin "art/spritelib_faces.png"
-Incbin "art/spritelib_font.png"
+'Incbin "art/spritelib_font.png"
+Incbin "art/consolas.ttf"
 Incbin "sound/high_click.wav"
 Incbin "sound/low_click.wav"
 

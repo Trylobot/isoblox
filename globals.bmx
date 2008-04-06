@@ -7,29 +7,6 @@ Started on September 30th, 2006
 _______________________________
 EndRem
 
-Rem
-isometric rotation layout
-
-     + -  
-      Z     CCW +
-      |     CW  -
-      o       
-     / \     
-  - Y   X +
-  +       -
-	
-geometry groupings
- (excerpt from documentation file "isotype_reference.png")
-	
-  0
-  1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12
- 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
- 37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60
- 61,62,63,64,65,66,67,68
- 69,70,71,72,73,74,75,76
-_______________________________
-EndRem
-
 Strict
 
 Import BRL.Timer
@@ -58,6 +35,7 @@ Global MOUSE_LAST_Y = 0
 
 Global cursor_blink_timer:TTimer = CreateTimer( 300 )
 Global COLOR_CYCLE[6]
+Global ALPHA_CYCLE[2]
 
 Const COUNT_LIBS   = 6
 Const COUNT_BLOCKS = 77
@@ -97,9 +75,7 @@ Const ROTATE_Y_PLUS  = 4
 Const ROTATE_Z_PLUS  = 5
 Global rotation_map[ 6, COUNT_BLOCKS ]
 
-Const CHAR_HEIGHT = 9
-Const CHAR_WIDTH  = 8
-Const MAX_STATUS_MESSAGE_COUNT = 8
+Const MAX_STATUS_MESSAGE_COUNT = 6
 Const TOKEN_DARKGRAY$ = "$D"
 Const TOKEN_BLACK$    = "$B"
 Const TOKEN_RED$      = "$r"
@@ -108,15 +84,41 @@ Const TOKEN_BLUE$     = "$b"
 Const TOKEN_YELLOW$   = "$y"
 Const TOKEN_CYAN$     = "$c"
 Const TOKEN_PURPLE$   = "$p"
-Global spritelib_font:TImage[ 128 ]
-Global spritelib_font_map:TPixmap
+'Global spritelib_font:TImage[ 128 ]
+'Global spritelib_font_map:TPixmap
+Global font_consolas:TImageFont
 Const test_str$ = "$B !~q#$%'()*+$D,-./01234567$r89:;<=>?@ABC$gDEFGHIJKLMNO$bPQRSTUVWXYZ[$y\]^_`abcdefg$chijklmnopqrs$ptuvwxyz{|}~~"
+Global CHAR_HEIGHT = -1
+Global CHAR_WIDTH  = -1
 
 Global high_click:TSound
 Global low_click:TSound
 
 
 'Global FUNCTIONS
+
+Rem
+isometric rotation layout
+
+     + -  
+      Z     CCW +
+      |     CW  -
+      o       
+     / \     
+  - Y   X +
+  +       -
+	
+geometry groupings
+ (excerpt from documentation file "isotype_reference.png")
+	
+  0
+  1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12
+ 13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36
+ 37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60
+ 61,62,63,64,65,66,67,68
+ 69,70,71,72,73,74,75,76
+_______________________________
+EndRem
 
 'Rotate Init_______________________________________________________________________________________
 Function initialize_rotation_map()
@@ -346,6 +348,8 @@ Function initialize_rotation_map()
 	Rem
 	'a type of development sanity check against manual entry errors
 	'prints the total number of times each isotype is referenced
+	'being that I used mirrored geometry and all possible 90 degree rotations,
+	'these should be nice round numbers, easy to decide if there's something wrong.
 	Local checksum[] = New Int[ COUNT_BLOCKS ]
 	For Local operation = 0 To 5
 		For Local isotype = 0 To COUNT_BLOCKS - 1

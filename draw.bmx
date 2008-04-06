@@ -595,14 +595,18 @@ EndFunction
 '_________________________________________________________________________
 Function draw_string_literal( message$, scr:scr_coord )
 	
+	'This uses a font from Windows Vista, which is smoothed
+	DrawText( message, scr.x, scr.y )
+	
+	'This uses my old bitmap font, which is not smoothed
+	Rem
 	For Local position = 0 To (message.length - 1)
-		
 		DrawImage( ..
 			spritelib_font[message[position] - 32], ..
 			scr.x + (position * CHAR_WIDTH), ..
 			scr.y )
-		
 	Next
+	EndRem
 	
 EndFunction
 

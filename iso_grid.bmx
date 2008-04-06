@@ -92,7 +92,7 @@ Type iso_grid
 	'Should this method have a selector for over-write?
 	'for now it will insert a new block at a location, or over-write existing.
 	'the location for the insert must be provided inside the object's [offset] field
-	Method insert_block( new_block_raw:iso_block )
+	Method insert_block%( new_block_raw:iso_block )
 		If new_block_raw.offset.in_bounds( size )
 			Local new_block:iso_block = new_block_raw.copy()
 			
@@ -103,7 +103,7 @@ Type iso_grid
 				set_filled( new_block.offset, True )
 				set_space( new_block.offset, new_block )
 				set_backref( new_block.offset, renderlist.AddFirst( new_block ))
-				Return
+				Return 1
 			EndIf		
 			
 			Local main_cursor:TLink = renderlist.FirstLink()
@@ -121,7 +121,7 @@ Type iso_grid
 					set_filled( new_block.offset, True )
 					set_space( new_block.offset, new_block )
 					set_backref( new_block.offset, renderlist.InsertBeforeLink( new_block, main_cursor ))
-					Return
+					Return 1
 				ElseIf cmp = 0
 					main_block.clone( new_block )
 				EndIf
@@ -136,7 +136,9 @@ Type iso_grid
 			set_filled( new_block.offset, True )
 			set_space( new_block.offset, new_block )
 			set_backref( new_block.offset, renderlist.AddLast( new_block ))
-			
+			Return 1
+		Else
+			Return 0
 		EndIf
 	EndMethod
 	
@@ -146,17 +148,29 @@ Type iso_grid
 	'Will only insert blocks with valid locations.
 	' Locations are given as the offset of the subgrid origin added to the local offset of the block in question
 	'This method is going to be heavily re-worked and optimized, so it may not be pretty.
-	Method insert_brush( target:iso_coord, brush:iso_grid )
-		
-		If brush.is_empty()
-			Return
-		ElseIf is_empty()
-			'copy the entire brush into this iso_grid
-			
-			Return
-		EndIf
+	Method insert_brush%( target:iso_coord, brush:iso_grid )
 		
 		Local new_block:iso_block
+		Local insertions = 0
+		
+		If brush.is_empty()
+			Return insertions
+		ElseIf is_empty()
+			'copy the entire brush into this iso_grid
+			'iterate in reverse through the brush's renderlist
+			Local cursor:TLink = brush.renderlist.LastLink()
+			While cursor <> Null
+				new_block = iso_block( cursor.Value() ).copy()
+				new_block.offset = new_block.offset.add( target )
+				If new_block.offset.in_bounds( size )
+					insert_block( new_block )
+					insertions :+ 1
+				EndIf
+				cursor = cursor.PrevLink()
+			EndWhile
+			Return insertions
+		EndIf
+		
 		Local main_cursor:TLink = renderlist.FirstLink()
 		Local brush_cursor:TLink = brush.renderlist.FirstLink()
 		Local main_block:iso_block = iso_block( main_cursor.Value() )
@@ -183,8 +197,10 @@ Type iso_grid
 						set_filled( new_block.offset, True )
 						set_space( new_block.offset, new_block )
 						set_backref( new_block.offset, renderlist.InsertBeforeLink( new_block, main_cursor ))
+						insertions :+ 1
 					ElseIf cmp = 0
 						get_space( new_block.offset ).clone( new_block )
+						insertions :+ 1
 					Else
 						'dump out early for efficiency
 						Exit
@@ -209,10 +225,13 @@ Type iso_grid
 					set_filled( new_block.offset, True )
 					set_space( new_block.offset, new_block )
 					set_backref( new_block.offset, renderlist.AddLast( new_block ))
+					insertions :+ 1
 				EndIf
 				
 			brush_cursor = brush_cursor.NextLink()
 		EndWhile
+		
+		Return insertions
 		
 	EndMethod
 	
