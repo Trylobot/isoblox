@@ -158,21 +158,18 @@ Type controller
 		Next
 		EndRem
 		
-		'This chunk has been disabled while I re-write the draw_gridlines functions
-		Rem
 		If SHOW_GRIDLINES
 			If Not REDRAW_BG
 				SetColor( 255, 255, 255 )
 				SetAlpha( 1.000 )
 				DrawImage( bg_cache, 0, 0 )
 			Else
-				draw_gridlines( canvas )
+				draw_bg( canvas )
 				bg_cache = LoadImage( GrabPixmap( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT ))
 				SetImageHandle( bg_cache, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 )
 				REDRAW_BG = False
 			EndIf
 		EndIf
-		EndRem
 		
 		If SHOW_SHADOWS And SHOW_BLOCKS
 			draw_block_shadows( canvas )

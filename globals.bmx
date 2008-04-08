@@ -27,6 +27,8 @@ Global GRID_MAJOR_INTERVAL = 8
 Global ORIGIN_X = SCREEN_WIDTH / 2
 Global ORIGIN_Y = SCREEN_HEIGHT / 2
 
+Global BOLD_LINE_FREQUENCY = 10
+
 Global program_timer:TTimer = CreateTimer( 10 )
 Global program_timer_ticks
 

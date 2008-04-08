@@ -45,6 +45,35 @@ Function draw_hover_block( grid:iso_grid, offset:iso_coord )
 	draw_block( grid.get_space( offset ), position, LIB_BLOCKS )
 EndFunction
 
+'Draw BG__________________________________________________________________
+Function draw_bg( grid:iso_grid )
+	Local bold_freq = 10 'sets frequency of major grid lines
+	SetColor( 0, 0, 0 )
+	Local s:iso_coord = grid.size
+	draw_lines( scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( 1, 0 ), scr_coord.create( 8, 4 ), s.x+1 ) 'OK - starts at an axis
+	draw_lines( scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( -8*s.y+8*s.x, 4*s.x+4*s.y ), scr_coord.create( 8, -4 ), s.y+1 ) 'REVERSE IT - starts at a boundary!
+	draw_lines( scr_coord.create( -8*s.y, -8*s.z+4*s.y ), scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( 8, -4 ), s.y+1) 'REVERSE IT - starts at a boundary!
+	draw_lines( scr_coord.create( -8*s.y, -8*s.z+4*s.y ), scr_coord.create( 1, -8*s.z ), scr_coord.create( 0, 8 ), s.z+1 ) 'REVERSE IT - starts at a boundary!
+	draw_lines( scr_coord.create( 0, -8*s.z ), scr_coord.create( 0, 0 ), scr_coord.create( 8, 4 ), s.x+1 ) 'OK - starts at an axis
+	draw_lines( scr_coord.create( 0, -8*s.z ), scr_coord.create( 8*s.x+1, 4*s.x-8*s.z ), scr_coord.create( 0, 8 ), s.z+1 ) 'REVERSE IT - starts at a boundary!
+EndFunction
+Function draw_lines( u:scr_coord, v:scr_coord, delta:scr_coord, count )
+	Local offset = (count Mod BOLD_LINE_FREQUENCY)
+	Local last = count + offset - 1
+	
+	For Local iter = offset To last
+		If iter Mod 10 = 0 Or iter = last 'heavy line
+			SetAlpha( 0.100 )
+			SetLineWidth( 2 )
+		Else 'light line
+			SetAlpha( 0.090 )
+			SetLineWidth( 1 )
+		EndIf
+		DrawLine( u.x, u.y, v.x, v.y )
+		u = u.add( delta ); v = v.add( delta )
+	Next
+EndFunction
+
 'Draw Blocks With Cursor___________________________________________________________________________
 Function draw_blocks_with_cursor( grid:iso_grid, cursor:iso_cursor )
 	
@@ -594,110 +623,7 @@ EndFunction
 
 '_________________________________________________________________________
 Function draw_string_literal( message$, scr:scr_coord )
-	
 	'This uses a font from Windows Vista, which is smoothed
 	DrawText( message, scr.x, scr.y )
-	
-	'This uses my old bitmap font, which is not smoothed
-	Rem
-	For Local position = 0 To (message.length - 1)
-		DrawImage( ..
-			spritelib_font[message[position] - 32], ..
-			scr.x + (position * CHAR_WIDTH), ..
-			scr.y )
-	Next
-	EndRem
-	
 EndFunction
 
-'_________________________________________________________________________
-'This function and its associates need to be re-written.
-Rem
-Function draw_gridlines( grid:iso_grid )
-
-	SetColor( 0, 0, 0 )
-	SetAlpha( 0.090 )
-	
-	SetLineWidth( 1 )
-	
-	draw_lines( ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 1], ..
-		grid.bounds[ 2], ..
-		grid.size.x+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 3], ..
-		grid.bounds[ 4], ..
-		grid.size.y+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 5], ..
-		grid.bounds[ 0], ..
-		grid.bounds[ 4], ..
-		grid.size.y+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 5], ..
-		grid.bounds[ 6], ..
-		grid.bounds[ 7], ..
-		grid.size.z+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 8], ..
-		grid.bounds[ 9], ..
-		grid.bounds[ 2], ..
-		grid.size.x+1 )
-		
-	draw_lines( ..
-		grid.bounds[ 8], ..
-		grid.bounds[10], ..
-		grid.bounds[ 7], ..
-		grid.size.z+1 )
-	
-	SetLineWidth( 2 )
-	
-	draw_heavy_lines( ..
-		grid.bounds[ 6], ..
-		grid.bounds[10], ..
-		grid.bounds[11], ..
-		grid.bounds[12], ..
-		grid.bounds[ 0], ..
-		grid.bounds[13] )
-	
-EndFunction
-
-'_________________________________________________________________________
-Function draw_lines( u:scr_coord, v:scr_coord, delta:scr_coord, count )
-	
-	For Local iteration = 1 To count
-		
-		DrawLine( u.x, u.y, v.x, v.y )
-		u = u.add(delta)
-		v = v.add(delta)
-		
-	Next
-	
-EndFunction
-
-'_________________________________________________________________________
-Function draw_heavy_lines( p1:scr_coord, p2:scr_coord, p3:scr_coord, p4:scr_coord, p5:scr_coord, p6:scr_coord )
-	
-	'axes
-	SetAlpha( 0.065 )
-	DrawLine( p1.x, p1.y, 1, 0 )
-	DrawLine( p5.x, p5.y, 1, 0 )
-	DrawLine( 1, 0, p3.x, p3.y )
-	
-	'borders
-	SetAlpha( 0.160 )
-	DrawLine( p1.x, p1.y, p2.x, p2.y )
-	DrawLine( p2.x, p2.y, p3.x, p3.y )
-	DrawLine( p3.x, p3.y, p4.x, p4.y )
-	DrawLine( p4.x, p4.y, p5.x, p5.y )
-	DrawLine( p5.x, p5.y, p6.x, p6.y )
-	DrawLine( p6.x, p6.y, p1.x, p1.y )
-	
-EndFunction
-EndRem

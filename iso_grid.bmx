@@ -454,32 +454,6 @@ Type iso_grid
 		
 	EndMethod
 	
-	Rem
-	'Calculate Bounds____________________________________________________________________________
-	Method calculate_bounds()
-		
-		bounds = New scr_coord[14]
-		
-		bounds[ 0] = scr_coord.Create( -8*size.y, 4*size.y )
-		bounds[ 1] = scr_coord.Create( 1, 0 )
-		bounds[ 2] = scr_coord.Create( 8, 4 )
-		bounds[ 3] = scr_coord.Create( -8*size.y+8*size.x, 4*size.x+4*size.y )
-		bounds[ 4] = scr_coord.Create( 8, -4 )
-		bounds[ 5] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
-		bounds[ 6] = scr_coord.Create( 1, -8*size.z )
-		bounds[ 7] = scr_coord.Create( 0, 8 )
-		bounds[ 8] = scr_coord.Create( 0, -8*size.z )
-		bounds[ 9] = scr_coord.Create( 0, 0 )
-		'bounds[10] = scr_coord.create( 8*size.x, 4*size.x-8*size.z )
-		bounds[10] = scr_coord.Create( 8*size.x+1, 4*size.x-8*size.z )
-		bounds[11] = scr_coord.Create( 8*size.x+1, 4*size.x )
-		bounds[12] = scr_coord.Create( -8*size.y+8*size.x+1, 4*size.x+4*size.y )
-		'bounds[13] = scr_coord.create( -8*size.y+1, -8*size.z+4*size.y )
-		bounds[13] = scr_coord.Create( -8*size.y, -8*size.z+4*size.y )
-		
-	EndMethod
-	EndRem
-	
 	'To String________________________________________________________________
 	Method str$()
 		Local s$ = "[iso_grid]~n"
@@ -493,8 +467,6 @@ Type iso_grid
 	EndMethod
 
 EndType
-
-
 
 'Generalized Retrieval (set of 3)__________________________________________
 Function grid_get_space:iso_block( v:iso_coord, g:iso_grid )
