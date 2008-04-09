@@ -17,6 +17,9 @@ Import BRL.Audio
 Const PROJECT_VERSION$ = "alpha 4"
 Const CONFIG_FILENAME$ = "isoblox.cfg"
 
+Const GRID_SPACING_X = 8
+Const GRID_SPACING_Y = 4
+
 Global SCREEN_WIDTH  = 350
 Global SCREEN_HEIGHT = 350
 Global GRID_X = 16
@@ -58,12 +61,14 @@ Const LIB_SHADOWS_XY = 3
 Const LIB_SHADOWS_YZ = 4
 Const LIB_SHADOWS_XZ = 5
 
+Rem
 Const FACE_XY_MINUS = 0
 Const FACE_YZ_MINUS = 1
 Const FACE_XZ_MINUS = 2
 Const FACE_XY_PLUS  = 3
 Const FACE_YZ_PLUS  = 4
 Const FACE_XZ_PLUS  = 5
+EndRem
 
 Const CURSOR_BASIC  = 0
 Const CURSOR_BRUSH  = 1

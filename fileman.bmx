@@ -18,6 +18,7 @@ Strict
 Import BRL.Blitz
 Import BRL.PNGLoader
 Import BRL.WAVLoader
+Import BAH.LibXML
 
 Import "globals.bmx"
 Import "coord.bmx"
@@ -240,108 +241,26 @@ EndFunction
 Function fileman_grid_load_system$( grid:iso_grid )
 	
 	CreateDir( "user" )
-	Local file$ = RequestFile( "Select an existing isoblox grid data file to load", "isoblox grid data file (*.dat):dat;All files:*", False, CurrentDir()+"/user/" )
-	
-	If Not fileman_grid_load_explicit( file, grid )
+	Local file_string$ = ..
+		RequestFile( ..
+			"Select an existing isoblox grid data file to load", ..
+			"isoblox grid data file (*.dat):dat;All files:*", ..
+			False, ..
+			CurrentDir()+"/user/" )
+	Local file:TStream = ReadFile( file_string )
+	If file
+		grid = fileman_grid_load_explicit( file )
+		Return file_string
+	Else
 		Return "ERROR"
-	Else	
-		Return file
 	EndIf
 	
 EndFunction
 
 '_________________________________________________________________________
-Function fileman_grid_load_explicit( file$, grid:iso_grid )
+Function fileman_grid_load_explicit:iso_grid( file:TStream )
 	
-	Local file_in:TStream = ReadFile( file )
-	If Not file_in
-		
-		Return False
-		
-	EndIf
-	
-	Local new_size:iso_coord = New iso_coord
-	Local new_grid:iso_grid = New iso_grid
-	
-	Local line_number = 0
-	Local found_title = False
-	Local found_size = False
-	Local line$
-	
-	While Not Eof( file_in )
-	
-		line_number :+ 1
-		line = ReadLine( file_in ).Trim()
-		
-		If line.length = 0 Or line[0..1] = ";"
-			
-			Continue
-		
-		ElseIf line[0..1] = "["
-			
-			If line.find( "iso_grid" ) >= 0 And Not found_title
-				
-				found_title = True
-				Continue
-				
-			Else
-				
-				CloseStream( file_in )
-				Return False
-				
-			EndIf
-		
-		Else
-			
-			If line.find( "size" ) >= 0
-	
-				line = line[(line.find( "=" ) + 1)..];	new_size.x = line.ToInt()			
-				line = line[(line.find( " " ) + 1)..];	new_size.y = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	new_size.z = line.ToInt()
-				
-				If Not new_size.is_invalid()
-					found_size = True
-					new_grid.resize( new_size )
-				EndIf
-				
-			ElseIf line.find( "iso_block" ) >= 0 And found_size
-				
-				Local fresh_block:iso_block = New iso_block 'iso_block.invalid()
-				
-				line = line[(line.find( "=" ) + 1)..];	fresh_block.isotype = line.ToInt()
-				line = line[(line.find( "," ) + 1)..];	fresh_block.offset.x = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	fresh_block.offset.y = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	fresh_block.offset.z = line.ToInt()
-				line = line[(line.find( "," ) + 1)..];	fresh_block.red = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	fresh_block.green = line.ToInt()
-				line = line[(line.find( " " ) + 1)..];	fresh_block.blue = line.ToInt()
-	
-				If Not fresh_block.is_invalid()
-					new_grid.insert_block( fresh_block )
-				EndIf
-				
-			Else
-				
-				CloseStream( file_in )
-				Return False
-						
-			EndIf
-			
-		EndIf
-		
-	EndWhile
-	
-	If Not found_title
-		
-		CloseStream( file_in )
-		Return False
-		
-	Else
-		
-		'success!
-		Return True
-		
-	EndIf
+	'insert code for handling xml
 	
 EndFunction
 

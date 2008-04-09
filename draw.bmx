@@ -7,11 +7,11 @@ Started on September 30th, 2006
 
  isometric axes layout (x,y,z)
 
-   Z              screen axes layout (x,y)
-   |      
-   o              o__X
-  / \             |  
- Y   X            Y
+   Z     screen axes layout (x,y)
+   |     
+   o       o__X
+  / \      |  
+ Y   X     Y
 _______________________________
 EndRem
 
@@ -33,8 +33,20 @@ Import "iso_cursor.bmx"
 
 'Draw Block________________________________________________________________________________________
 Function draw_block( source:iso_block, position:scr_coord, sprite_library% )
-	SetColor( source.red, source.green, source.blue )
-	'SetAlpha( source.alpha )
+	Select sprite_library
+		Case LIB_BLOCKS
+			SetColor( source.red, source.green, source.blue )
+		Case LIB_WIREFRAMES
+			SetColor( 0, 0, 0 )
+		Case LIB_OUTLINES
+			SetColor( 0, 0, 0 )
+		Case LIB_SHADOWS_XY
+			SetColor( 200, 200, 200 )
+		Case LIB_SHADOWS_YZ
+			SetColor( 200, 200, 200 )
+		Case LIB_SHADOWS_XZ
+			SetColor( 200, 200, 200 )
+	EndSelect
 	DrawImage( spritelib_blocks[ sprite_library, source.isotype ], position.x, position.y )
 EndFunction
 
@@ -45,32 +57,37 @@ Function draw_hover_block( grid:iso_grid, offset:iso_coord )
 	draw_block( grid.get_space( offset ), position, LIB_BLOCKS )
 EndFunction
 
-'Draw BG__________________________________________________________________
+'Draw BG___________________________________________________________________________________________
 Function draw_bg( grid:iso_grid )
 	Local bold_freq = 10 'sets frequency of major grid lines
-	SetColor( 0, 0, 0 )
-	Local s:iso_coord = grid.size
-	draw_lines( scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( 1, 0 ), scr_coord.create( 8, 4 ), s.x+1 ) 'OK - starts at an axis
-	draw_lines( scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( -8*s.y+8*s.x, 4*s.x+4*s.y ), scr_coord.create( 8, -4 ), s.y+1 ) 'REVERSE IT - starts at a boundary!
-	draw_lines( scr_coord.create( -8*s.y, -8*s.z+4*s.y ), scr_coord.create( -8*s.y, 4*s.y ), scr_coord.create( 8, -4 ), s.y+1) 'REVERSE IT - starts at a boundary!
-	draw_lines( scr_coord.create( -8*s.y, -8*s.z+4*s.y ), scr_coord.create( 1, -8*s.z ), scr_coord.create( 0, 8 ), s.z+1 ) 'REVERSE IT - starts at a boundary!
-	draw_lines( scr_coord.create( 0, -8*s.z ), scr_coord.create( 0, 0 ), scr_coord.create( 8, 4 ), s.x+1 ) 'OK - starts at an axis
-	draw_lines( scr_coord.create( 0, -8*s.z ), scr_coord.create( 8*s.x+1, 4*s.x-8*s.z ), scr_coord.create( 0, 8 ), s.z+1 ) 'REVERSE IT - starts at a boundary!
+	Local x = grid.size.x, y = grid.size.y, z = grid.size.z
+	Local w = GRID_SPACING_X, h = GRID_SPACING_Y
+	draw_lines( 0,0, x*w,x*h, -w,h, y+1, True  )     'x axis moves along y
+	draw_lines( 0,0, x*w,x*h, 0,-2*h, z+1, False )  'x axis moves along z
+	draw_lines( 0,0, -y*w,y*h, w,h, x+1, True )     'y axis moves along x
+	draw_lines( 0,0, -y*w,y*h, 0,-2*h, z+1, False ) 'y axis moves along z
+	draw_lines( 0,0, 0,-2*z*h, w,h, x+1, True )     'z axis moves along x
+	draw_lines( 0,0, 0,-2*z*h, -w,h, y+1, False )   'z axis moves along y
 EndFunction
-Function draw_lines( u:scr_coord, v:scr_coord, delta:scr_coord, count )
-	Local offset = (count Mod BOLD_LINE_FREQUENCY)
-	Local last = count + offset - 1
-	
-	For Local iter = offset To last
-		If iter Mod 10 = 0 Or iter = last 'heavy line
-			SetAlpha( 0.100 )
+
+'Draw Lines________________________________________________________________________________________
+Function draw_lines( x1,y1, x2,y2, dx,dy, count, bold_0 = False )
+	SetColor( 0, 0, 0 )
+	For Local iter = 0 To count - 1
+		If (iter = 0 And bold_0) ..
+		Or (iter <> 0 And iter Mod BOLD_LINE_FREQUENCY = 0 ) ..
+		Or (iter = count - 1)
+			'Bold line
 			SetLineWidth( 2 )
-		Else 'light line
-			SetAlpha( 0.090 )
+			SetAlpha( 0.060 )
+		Else
+			'Normal line
 			SetLineWidth( 1 )
+			SetAlpha( 0.050 )
 		EndIf
-		DrawLine( u.x, u.y, v.x, v.y )
-		u = u.add( delta ); v = v.add( delta )
+		DrawLine( x1,y1, x2,y2 )
+		x1 :+ dx; y1 :+ dy
+		x2 :+ dx; y2 :+ dy
 	Next
 EndFunction
 
@@ -288,6 +305,8 @@ EndFunction
 
 '_________________________________________________________________________
 Function draw_block_shadows( grid:iso_grid )
+	
+	
 	
 	Local scr_xy:scr_coord
 	Local scr_yz:scr_coord

@@ -9,9 +9,11 @@ EndRem
 
 Strict
 
+Import "globals.bmx" 'for grid_spacing_(x|y)
+
 'ISO -> SCR________________________________________________________________________________________
 Function iso_to_scr:scr_coord( iso:iso_coord )
-	Return scr_coord.create( 8 * (iso.x - iso.y), (4 * (iso.x + iso.y)) - (8 * iso.z) )
+	Return scr_coord.create( GRID_SPACING_X * (iso.x - iso.y), (GRID_SPACING_Y * (iso.x + iso.y)) - ((GRID_SPACING_Y * 2) * iso.z) )
 EndFunction
 
 'SCR -> ISO________________________________________________________________________________________
