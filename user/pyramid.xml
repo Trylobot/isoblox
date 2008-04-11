@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE iso_grid SYSTEM "iso_grid.dtd">
 <iso_grid name="pyramid">
 	<size x="3" y="3" z="3"/>
 	<iso_block isotype="0"><color r="255" g="210" b="210"/><offset x="2" y="0" z="0"/></iso_block>

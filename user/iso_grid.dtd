@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<!-- Project isoblox XML Document Type Definition -->
+<!ELEMENT iso_grid (size,iso_block*)>
+<!ATTLIST iso_grid name CDATA "Untitled">
+<!ELEMENT size (EMPTY)>
+<!ATTLIST size x CDATA "1">
+<!ATTLIST size y CDATA "1">
+<!ATTLIST size z CDATA "1">
+<!ELEMENT iso_block (color,offset)>
+<!ATTLIST iso_block isotype CDATA "0">
+<!ELEMENT color (EMPTY)>
+<!ATTLIST color r CDATA "255">
+<!ATTLIST color g CDATA "255">
+<!ATTLIST color b CDATA "255">
+<!ELEMENT offset (EMPTY)>
+<!ATTLIST offset x CDATA "0">
+<!ATTLIST offset y CDATA "0">
+<!ATTLIST offset z CDATA "0">
