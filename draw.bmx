@@ -59,7 +59,6 @@ EndFunction
 
 'Draw BG___________________________________________________________________________________________
 Function draw_bg( grid:iso_grid )
-	Local bold_freq = 10 'sets frequency of major grid lines
 	Local x = grid.size.x, y = grid.size.y, z = grid.size.z
 	Local w = GRID_SPACING_X, h = GRID_SPACING_Y
 	draw_lines( 0,0, x*w,x*h, -w,h, y+1, True  )     'x axis moves along y
@@ -643,6 +642,9 @@ EndFunction
 '_________________________________________________________________________
 Function draw_string_literal( message$, scr:scr_coord )
 	'This uses a font from Windows Vista, which is smoothed
-	DrawText( message, scr.x, scr.y )
+	For Local position = 0 to message.length - 1
+		DrawText( message[position..position+1], ..
+			scr.x + position*CHAR_WIDTH, scr.y )
+	Next
 EndFunction
 

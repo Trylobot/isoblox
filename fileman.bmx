@@ -52,8 +52,8 @@ Function fileman_load_art()
 	
 	font_consolas = LoadImageFont( "incbin::art/consolas.ttf", 10 )
 	SetImageFont( font_consolas )
-	CHAR_HEIGHT = TextHeight( "m" ) - 4
-	CHAR_WIDTH = TextWidth( "m" )
+	CHAR_HEIGHT = TextHeight( "a" ) - 4
+	CHAR_WIDTH = TextWidth( "a" ) - 2
 	
 	Rem
 	spritelib_font_map = LoadPixmapPNG( "incbin::art/spritelib_font.png" )
