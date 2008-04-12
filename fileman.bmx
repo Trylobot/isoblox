@@ -249,7 +249,7 @@ Function fileman_grid_load_system$( grid:iso_grid )
 			CurrentDir()+"/user/" )
 	Local file:TStream = ReadFile( file_string )
 	If file
-		grid = fileman_grid_load_explicit( file )
+		grid = fileman_grid_load_explicit( file_string )
 		Return file_string
 	Else
 		Return "ERROR"
@@ -258,9 +258,14 @@ Function fileman_grid_load_system$( grid:iso_grid )
 EndFunction
 
 '_________________________________________________________________________
-Function fileman_grid_load_explicit:iso_grid( file:TStream )
+Function fileman_grid_load_explicit:iso_grid( file_string$ )
 	
-	'insert code for handling xml
+	Local doc:TxmlDoc = TxmlDoc.parseFile( file_string )
+	Local node:TxmlNode = doc.GetRootElement()
+	Local nodeList:TList = node.GetChildren()
+	For node = EachIn nodeList
+		
+	Next
 	
 EndFunction
 

@@ -25,6 +25,7 @@ Incbin "art/spritelib_faces.png"
 Incbin "art/consolas.ttf"
 Incbin "sound/high_click.wav"
 Incbin "sound/low_click.wav"
+Incbin "user/iso_grid.dtd"
 
 'initialization
 If Not fileman_load_cfg_auto() Then fileman_save_cfg_auto()
