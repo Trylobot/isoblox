@@ -115,16 +115,17 @@ Type controller
 	'_________________________________________________________________________
 	Method chug()
 		
+		'rename get_input() to update()
 		get_input()
 		draw()
 		
-		'DRAW_DEBUG_INFORMATION()
-		
+		'move to get_input()/update()
 		If seconds.Ticks() < intro_messages.length And last_tick < seconds.Ticks()
 			last_tick = seconds.Ticks()
 			status.append( intro_messages[ last_tick ])
 		EndIf
 		
+		'move to get_input()/update()
 		If KeyHit( Key_F12 )
 			status.append( "capturing screenshot ..." )
 			Local filename$ = fileman_screenshot_auto()
@@ -132,18 +133,6 @@ Type controller
 		EndIf
 				
 	EndMethod
-	
-	Rem
-	'_________________________________________________________________________
-	Method DRAW_DEBUG_INFORMATION()
-		
-		SetOrigin( 0, 0 )
-		Local scr:scr_coord = scr_coord.create( 1, 1 )
-		SetAlpha( 1.000 )
-		draw_msg( cursor.basic_block.str(), scr )
-		
-	EndMethod
-	EndRem
 	
 	'_________________________________________________________________________
 	Method draw()
@@ -158,6 +147,15 @@ Type controller
 		Next
 		EndRem
 		
+		'Draw shadows
+		If SHOW_SHADOWS And SHOW_BLOCKS
+			draw_block_shadows( canvas )
+			If SHOW_CURSOR
+				draw_cursor_shadows( cursor )
+			EndIf
+		EndIf
+		
+		'Draw background gridlines
 		If SHOW_GRIDLINES
 			If Not REDRAW_BG
 				SetColor( 255, 255, 255 )
@@ -171,22 +169,16 @@ Type controller
 			EndIf
 		EndIf
 		
-		If SHOW_SHADOWS And SHOW_BLOCKS
-			draw_block_shadows( canvas )
-			If SHOW_CURSOR
-				draw_cursor_shadows( cursor )
-			EndIf
-		EndIf
-		
 		'This chunk has been disabled, probably permanently
+		'Draw block outlines
 		Rem
 		If SHOW_OUTLINES
 			draw_outlines( canvas, cursor )
 		EndIf
 		EndRem
 		
+		'Draw blocks
 		If SHOW_BLOCKS
-			
 			If Not SHOW_CURSOR
 				draw_blocks( canvas )
 			Else 'SHOW_CURSOR
@@ -197,23 +189,25 @@ Type controller
 				EndIf
 				draw_cursor_wireframe( cursor )
 			EndIf
-			
+			'Draw the special "mouse hover cursor"
 			If HOVER_FLAG
 				draw_hover_block( canvas, hover_block_offset )
 			EndIf
-			
 		EndIf
 		
+		'Draw status console messages
 		If SHOW_STATUS_MESSAGES
 			status.draw()
 		EndIf
 		
+		'Draw help screen
 		If SHOW_HELP
 			draw_help()
 		EndIf
 		
 	EndMethod
 	
+	'rename to update()
 	'_________________________________________________________________________
 	Method get_input()
 		

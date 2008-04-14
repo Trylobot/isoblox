@@ -33,6 +33,7 @@ Import "iso_cursor.bmx"
 
 'Draw Block________________________________________________________________________________________
 Function draw_block( source:iso_block, position:scr_coord, sprite_library% )
+	SetAlpha( 1.000 )
 	Select sprite_library
 		Case LIB_BLOCKS
 			SetColor( source.red, source.green, source.blue )
@@ -61,7 +62,7 @@ EndFunction
 Function draw_bg( grid:iso_grid )
 	Local x = grid.size.x, y = grid.size.y, z = grid.size.z
 	Local w = GRID_SPACING_X, h = GRID_SPACING_Y
-	draw_lines( 0,0, x*w,x*h, -w,h, y+1, True  )     'x axis moves along y
+	draw_lines( 0,0, x*w,x*h, -w,h, y+1, True  )    'x axis moves along y
 	draw_lines( 0,0, x*w,x*h, 0,-2*h, z+1, False )  'x axis moves along z
 	draw_lines( 0,0, -y*w,y*h, w,h, x+1, True )     'y axis moves along x
 	draw_lines( 0,0, -y*w,y*h, 0,-2*h, z+1, False ) 'y axis moves along z
