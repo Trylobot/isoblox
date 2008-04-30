@@ -18,22 +18,24 @@ Import "globals.bmx"
 Import "coord.bmx"
 Import "iso_block.bmx"
 Import "iso_grid.bmx"
+Import "iso_selection.bmx"
 
 Type iso_cursor
 
-	Field mode             'selector (basic|brush|select)
-	Field block:iso_block  'basic mode block; also contains global cursor offset
-	Field size:iso_coord   'selection extents
-	Field group_isotype[]  'rotation selector
-	Field group            'geometry selector
-	Field brush:iso_grid   'brush data (like a clipboard)
-	Field brush_list:TList 'list of brushes to use (list of clipboards)
-	Field time:TTimer      'cursor animation timer
+	Field mode                    'selector (basic|brush|select)
+	Field block:iso_block         'basic mode block; also contains global cursor offset
+	'Field size:iso_coord          'size of the selection
+	Field group_isotype[]         'rotation selector
+	Field group                   'geometry selector
+	Field brush:iso_grid          'brush data (like a clipboard)
+	Field brush_list:TList        'list of brushes to use (list of clipboards)
+	Field selection:iso_selection 'selection object
+	Field time:TTimer             'cursor animation timer
 	
 	Method New()
 		mode = CURSOR_BASIC
 		block = New iso_block
-		size = New iso_coord
+		'size = New iso_coord
 		group_isotype = group_starting_index[..]
 		group = 0
 		brush_list = CreateList()
@@ -47,8 +49,9 @@ Type iso_cursor
 	
 	Method change_size( delta:iso_coord )
 		Local new_size:iso_coord = size.add( delta )
-		If new_size.x >= 2 And new_size.y >= 2 And new_size.z >= 2
-			size = new_size
+		If new_size.x >= 1 And new_size.y >= 1 And new_size.z >= 1
+			selection.resize_by( delta )
+			'size = new_size
 		EndIf
 	EndMethod
 	

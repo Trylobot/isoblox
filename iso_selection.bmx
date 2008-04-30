@@ -46,12 +46,12 @@ Type iso_selection_node
 	
 	Method New()
 		display = 0
-		For Local index = 0 to 5
-			adjacency[index] = NULL
+		For Local index = 0 To 5
+			adjacency[index] = Null
 		Next
 	EndMethod
 	
-	Method create:iso_selection_node( ? )
+	Method Create:iso_selection_node( ? )
 	
 	EndMethod
 EndType
@@ -64,16 +64,16 @@ Type iso_selection
 	Method New()
 		position = New iso_coord
 		size = New iso_coord
-		For Local index = 0 to 7
-			anchor[index] = NULL
+		For Local index = 0 To 7
+			anchor[index] = Null
 		Next
 	EndMethod
 	
-	Method create:iso_selection( ? )
+	Method Create:iso_selection( ? )
 		
 	EndMethod
 	
-	Method resize( ? )
+	Method resize_by( delta:iso_coord )
 		
 	EndMethod
 EndType
