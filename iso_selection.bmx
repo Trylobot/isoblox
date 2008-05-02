@@ -74,6 +74,8 @@ Type iso_selection
 	EndMethod
 	
 	Method resize_by( delta:iso_coord )
+		If delta.x < 0
 		
+		EndIf
 	EndMethod
 EndType
