@@ -70,12 +70,27 @@ Type iso_selection
 	EndMethod
 	
 	Method Create:iso_selection( ? )
-		
 	EndMethod
 	
 	Method resize_by( delta:iso_coord )
-		If delta.x < 0
-		
+		resize( size.sub( delta ))
+	EndMethod
+	
+	Method resize( new_size:iso_coord )
+		If new_size.x < 0
+			
+		ElseIf new_size.x > 0
+			
+		EndIf
+		If new_size.y < 0
+			
+		ElseIf new_size.y > 0
+			
+		EndIf
+		If new_size.z < 0
+			
+		ElseIf new_size.z > 0
+			
 		EndIf
 	EndMethod
 EndType
