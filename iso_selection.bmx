@@ -16,7 +16,7 @@ EndRem
 '____________________
 'display register bit masks (necessary?)
 
-'adjacency array constants
+'adjacency array constants (negative/even, positive/odd)
 Const DIRECTION_X_NEG = 0
 Const DIRECTION_X_POS = 1
 Const DIRECTION_Y_NEG = 2
@@ -39,6 +39,16 @@ Strict
 Import "globals.bmx"
 Import "coord.bmx"
 
+
+Function flip_direction%( direction% )
+	If direction Mod 2 = 0
+		'negative; return positive (+1)
+		Return direction + 1
+	Else
+		'positive; return negative (-1)
+		Return direction - 1
+	EndIf
+EndFunction
 
 Type iso_selection_node
 	Field display% 'flag register indicating which iso_selection frame bitmaps to display (I believe there are 24)
@@ -72,25 +82,84 @@ Type iso_selection
 	Method Create:iso_selection( ? )
 	EndMethod
 	
-	Method resize_by( delta:iso_coord )
-		resize( size.sub( delta ))
+	Method resize( new_size:iso_coord )
+		resize( size.sub( new_size ))
 	EndMethod
 	
-	Method resize( new_size:iso_coord )
-		If new_size.x < 0
-			
-		ElseIf new_size.x > 0
+	Method resize_by( delta:iso_coord )
+		Local new_size:iso_coord = size.sub( delta )
+		Local counter
+		Local anchor_node:iso_selection_node
+		
+		If delta.x < 0
+			If new_size.x > 1
+				delete_from_anchor_in_direction( (-delta.x), anchor[ANCHOR_X1_Y0_Z0], DIRECTION_X_NEG )
+				delete_from_anchor_in_direction( (-delta.x), anchor[ANCHOR_X1_Y1_Z0], DIRECTION_X_NEG )
+				delete_from_anchor_in_direction( (-delta.x), anchor[ANCHOR_X1_Y0_Z1], DIRECTION_X_NEG )
+				delete_from_anchor_in_direction( (-delta.x), anchor[ANCHOR_X1_Y1_Z1], DIRECTION_X_NEG )
+			ElseIf new_size.x = 1
+				
+			ElseIf new_size.x = 0
+				
+			Else 'new_size.x < 0
+				
+			EndIf
+		ElseIf delta.x = 0
+			'do nothing
+		ElseIf delta.x > 0
 			
 		EndIf
-		If new_size.y < 0
-			
-		ElseIf new_size.y > 0
+		If delta.y < 0
+			If new_size.y > 1
+				delete_from_anchor_in_direction( (-delta.y), anchor[ANCHOR_X0_Y1_Z0], DIRECTION_Y_NEG )
+				delete_from_anchor_in_direction( (-delta.y), anchor[ANCHOR_X1_Y1_Z0], DIRECTION_Y_NEG )
+				delete_from_anchor_in_direction( (-delta.y), anchor[ANCHOR_X0_Y1_Z1], DIRECTION_Y_NEG )
+				delete_from_anchor_in_direction( (-delta.y), anchor[ANCHOR_X1_Y1_Z1], DIRECTION_Y_NEG )
+			ElseIf new_size.y = 1
+				
+			ElseIf new_size.y = 0
+				
+			Else 'new_size.y < 0
+				
+			EndIf
+		ElseIf delta.y = 0
+			'do nothing
+		ElseIf delta.y > 0
 			
 		EndIf
-		If new_size.z < 0
-			
-		ElseIf new_size.z > 0
+		If delta.z < 0
+			If new_size.z > 1
+				delete_from_anchor_in_direction( (-delta.z), anchor[ANCHOR_X0_Y0_Z1], DIRECTION_Z_NEG )
+				delete_from_anchor_in_direction( (-delta.z), anchor[ANCHOR_X1_Y0_Z1], DIRECTION_Z_NEG )
+				delete_from_anchor_in_direction( (-delta.z), anchor[ANCHOR_X0_Y1_Z1], DIRECTION_Z_NEG )
+				delete_from_anchor_in_direction( (-delta.z), anchor[ANCHOR_X1_Y1_Z1], DIRECTION_Z_NEG )
+			ElseIf new_size.z = 1
+				
+			ElseIf new_size.z = 0
+				
+			Else 'new_size.z < 0
+				
+			EndIf
+		ElseIf delta.z = 0
+			'do nothing
+		ElseIf delta.z > 0
 			
 		EndIf
+	EndMethod
+	
+	Method delete_from_anchor_in_direction( count, anchor_node:iso_selection_node, direction% )
+		If count < 1
+			Return
+		EndIf
+		Local opposite_direction = flip_direction( direction )
+		Local doomed_node:iso_selection_node
+		Local happy_node:iso_selection_node
+		For Local counter = 1 to count
+			doomed_node = anchor_node.adjacency[direction]
+			happy_node = doomed_node.adjacency[direction]
+			'this _should_ leave the current "doomed_node" out in the cold, to be deleted by automatic garbage collection, since nothing points to it
+			anchor_node.adjacency[direction] = happy_node
+			happy_node.adjacency[opposite_direction] = anchor_node
+		Next
 	EndMethod
 EndType
