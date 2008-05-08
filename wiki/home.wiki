@@ -2,4 +2,4 @@
 
 = What is isoblox? =
 
-It started as a flat pixel-art idea on deviantART (link), then a half-baked idea for a flash toy, and has since grown into an (almost) full-fledged art tool in its own right (or at least, that's where its going).
+It started as a [http://k-bot.deviantart.com/art/IsoBlocks-10785528 flat pixel-art idea on deviantART], then a half-baked idea for a flash toy, and has since grown into an (almost) [http://k-bot.deviantart.com/art/isoblox-tutorial-48775583 full-fledged art tool] in its own right (or at least, that's where its going).
