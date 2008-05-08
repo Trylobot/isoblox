@@ -1,5 +1,5 @@
-#summary isoblox project wiki
+#summary isoblox Wiki Home
 
 = What is isoblox? =
 
-This project started as a pixel-art idea on deviantART (link), then a half-baked idea for a flash toy, and has since grown into an (almost) full-fledged art tool in its own right (or at least, that's where its going).
+It started as a flat pixel-art idea on deviantART (link), then a half-baked idea for a flash toy, and has since grown into an (almost) full-fledged art tool in its own right (or at least, that's where its going).
